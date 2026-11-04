@@ -1,88 +1,109 @@
-# Hex Possession Quiz ⚽ 🏀
+# ⚽ Hex Possession Quiz 🏀
 
-Un gioco di territorio su griglia esagonale basato su quiz sportivi, ispirato alle meccaniche di conquista e furto di territorio ("Possession Play").
-
-Sviluppato in **TypeScript**, **React**, **Vite** e grafica vettoriale pura in **SVG**.
-
----
-
-## 🕹️ Regole del Gioco
-
-1. **La Griglia (31 esagoni)**: La mappa è formata da 31 tessere esagonali disposte secondo coordinate assiali `(q, r)`. Ogni esagono rappresenta una specifica categoria (es. *"AC Milan"*, *"Campione del Mondo"*, *"Ha vinto la Champions League"*, *"Brasile 🇧🇷"*).
-2. **Scelta e Conquista**: Nel proprio turno, il giocatore seleziona un esagono **neutro** e digita/sceglie un'entità (giocatore o allenatore) che soddisfa quel criterio.
-3. **Effetto a Catena e Furto**:
-   - Se l'entità scelta soddisfa anche le categorie degli **esagoni adiacenti**, il giocatore li conquista tutti all'istante.
-   - Se uno o più esagoni adiacenti appartenevano all'avversario, vengono **rubati**!
-4. **Entità Uniche**: Ogni entità (calciatore o allenatore) può essere giocata **una sola volta** nell'intero corso della partita.
-5. **Orologio / Timer**: Ciascun giocatore ha un proprio timer individuale (es. 30s, 60s o 90s) che scorre unicamente durante il proprio turno. Se il tempo scade, il turno passa all'avversario.
-6. **Vittoria**: La partita termina quando tutti gli esagoni sono stati conquistati o non rimangono più mosse valide. Vince chi controlla la maggioranza degli esagoni. In caso di parità, il pareggio viene risolto a favore di chi ha conservato più tempo sull'orologio.
+> Un gioco di conquista e territorio su griglia esagonale basato su quiz sportivi, ispirato alle meccaniche di *"Possession Play"*.
+> Sviluppato in **TypeScript**, **React**, **Vite** con grafica vettoriale pura in **SVG**.
 
 ---
 
-## 🚀 Modalità di Gioco Disponibili
+## 🎮 Guida Rapida: Come installarlo e giocarci subito
 
-- **👤 Giocatore Singolo (Tu vs Bot AI)**: Sfida l'intelligenza artificiale con 3 livelli di difficoltà:
-  - *Facile*: Conoscenza parziale dei giocatori, mosse meno aggressive.
-  - *Medio*: Buona conoscenza ed euristica greedy (massimizza esagoni e furti).
-  - *Difficile*: Conoscenza quasi totale, priorità ai furti e lookahead difensivo.
-- **👥 In 2 Giocatori (Hotseat)**: Gioca 1v1 sullo stesso schermo (desktop, tablet o smartphone).
-- **👥 In 3 Giocatori**: Partita a tre giocatori in contemporanea sullo stesso dispositivo.
-- **🤖 Bot vs Bot (Spettatore / Test)**: Guarda due bot scontrarsi in tempo reale, utile per debug e test dell'algoritmo.
+Se non hai mai usato un terminale prima d'ora, non preoccuparti! Segui questi semplici passi:
 
----
+### 1. Prerequisiti
+Assicurati di avere installato **Node.js** sul tuo computer (versione 18 o superiore):
+- Se non lo hai, scaricalo gratuitamente dal sito ufficiale: [nodejs.org](https://nodejs.org/) (consigliata la versione LTS).
+- L'installazione include automaticamente anche `npm`.
 
-## 🏗️ Architettura Software
+### 2. Scarica o clona il progetto
+Apri il terminale (o Prompt dei comandi su Windows) e clona la cartella del gioco:
+```bash
+git clone https://github.com/GabboTiger/gioco-sport.git
+cd gioco-sport
+```
 
-- **Motore di Gioco Puro (`src/engine/gameEngine.ts`)**:
-  - Nessuna dipendenza dal DOM, UI o librerie di rete.
-  - 100% deterministico e serializzabile (stato esportabile/importabile in JSON).
-  - Pronto per essere riutilizzato lato server per multiplayer online (PartyKit / WebSocket).
-- **Coordinate Esagonali Assiali (`src/engine/hexGrid.ts`)**:
-  - Utilizza coordinate `(q, r)` con $s = -q - r$.
-  - I 31 esagoni sono ricavati dalla griglia regolare a raggio 3 eliminando i 6 vertici estremi (forma simmetrica a 12 lati smussati).
-  - Proiezione SVG precisa `axialToPixel` con esagoni *pointy-topped*.
-- **Generatore di Tabelle Deterministico (`src/engine/boardGenerator.ts`)**:
-  - PRNG Mulberry32 con seed iniettabile per rigiocabilità identica.
-  - Garantisce almeno 5 risposte valide per ogni esagono.
-  - Ottimizza la disposizione delle categorie per massimizzare le intersezioni tra esagoni confinanti (>60%).
-- **Multi-Sport tramite Dati (`src/data/`)**:
-  - `footballDataset.ts`: Oltre 150 calciatori iconici e 18 grandi allenatori (Ancelotti, Guardiola, Klopp, Mourinho, Conte, Zidane, Inzaghi, Lippi, ecc.).
-  - `basketballDataset.ts`: 21 leggende NBA e coach per dimostrare il supporto multi-sport senza modificare una riga del motore.
-- **Autocomplete Veloce & Accento-Agnostico (`src/components/AutocompleteSearch.tsx`)**:
-  - Ricerca istantanea con normalizzazione NFD (es. `mbappe` trova `Mbappé`, `modric` trova `Modrić`).
-  - Mostra anteprima in tempo reale sulla mappa degli esagoni che verranno conquistati o rubati prima di confermare.
-
----
-
-## 📦 Installazione e Avvio Locale
-
-### Prerequisiti
-- Node.js (v18 o superiore, testato con v22)
-- npm
-
-### 1. Installazione dipendenze
+### 3. Installa i pacchetti necessari
+Nel terminale, digita ed esegui:
 ```bash
 npm install
 ```
+*(Ci vorranno circa 10-15 secondi per scaricare i componenti del gioco).*
 
-### 2. Avvio dell'applicazione di sviluppo
+### 4. Avvia il gioco!
+Avvia il server locale con il comando:
 ```bash
 npm run dev
 ```
-Apri il browser su `http://localhost:3000`.
 
-### 3. Esecuzione dei Test Unitari e di Integrazione
+Nel terminale vedrai apparire un link, solitamente:
+👉 **`http://localhost:3000`**
+
+Aprilo in un qualsiasi browser (Chrome, Safari, Firefox, Edge). **Buona partita!** 🎉
+
+---
+
+## 🕹️ Come si gioca (Regole del Gioco)
+
+### 🗺️ 1. La Mappa
+- La partita si gioca su una griglia di **31 esagoni**.
+- Ogni esagono riporta una categoria sportiva (es. *Milan*, *R. Madrid*, *Mondiale 🌍*, *UCL 🏆*, *Scudetto 🇮🇹*, *Attaccante ⚽*, *Portogallo 🇵🇹*).
+- Se un'abbreviazione non ti è chiara, basta passare il mouse sull'esagono o consultare la **Legenda Categorie** in fondo alla schermata, che elenca nome completo e requisiti di ogni tessera.
+
+### 🎯 2. Il Tuo Turno
+1. Clicca su un **esagono grigio (neutro)** che vuoi provare a conquistare.
+2. Si aprirà una casella di ricerca: scrivi il nome di un giocatore o allenatore (l'autocompletamento trova i nomi anche senza accenti o maiuscole, es. scrivendo `mbappe`, `kaka`, `modric`, `zidane`).
+3. Quando selezioni un'entità valida, vedrai subito un'**anteprima in tempo reale** sulla mappa: gli esagoni che conquisterai si illumineranno di verde, mentre quelli che ruberai all'avversario si illumineranno di rosso (*"RUBA!"*).
+4. Clicca **"Conferma Conquista"** per confermare la giocata.
+
+### 🔗 3. Conquiste a Catena e Furti di Territorio
+- **Conquista Confinante**: Se il giocatore che hai nominato soddisfa anche la categoria di un esagono adiacente, conquisti anche quello!
+- **Furto all'avversario**: Se uno degli esagoni adiacenti apparteneva già al tuo avversario, **glielo rubi** e diventa tuo!
+- **Modalità Catena Continua (Flood Fill)**: Se l'opzione è attiva nelle impostazioni, la conquista a catena non si ferma al primo cerchio di vicini: si propaga lungo tutti gli esagoni connessi che condividono quel criterio!
+
+### ⚠️ 4. Regola dell'Unicità
+- Ogni calciatore o allenatore può essere giocato **una sola volta** in tutta la partita. Scegli con cura quando calare le tue leggende più versatili!
+
+### ⏱️ 5. Il Timer
+- Ciascun giocatore ha un proprio orologio (es. 60 secondi).
+- Il tempo scorre solo mentre è il tuo turno. Se il tuo tempo si azzera, il turno passa immediatamente al tuo avversario.
+
+### 🏆 6. Chi Vince?
+- La partita termina quando tutti i 31 esagoni sono stati assegnati o se non rimangono più mosse possibili.
+- Vince chi controlla il **maggior numero di esagoni**. In caso di parità, vince chi ha più tempo rimasto sull'orologio.
+
+---
+
+## 👥 Modalità di Gioco Incluse
+
+- **👤 Giocatore Singolo (Tu vs Bot)**: Sfida l'intelligenza artificiale impostando la difficoltà:
+  - *Facile*: Il bot conosce solo i campioni più famosi e gioca in modo rilassato.
+  - *Medio*: Il bot valuta le mosse migliori e punta a conquistare e rubare più esagoni possibili.
+  - *Difficile*: Conoscenza quasi enciclopedica e forte prioritizzazione del furto dei tuoi esagoni.
+- **👥 In 2 Giocatori (Hotseat)**: Gioca 1 contro 1 a turni sullo stesso computer, tablet o smartphone.
+- **👥 In 3 Giocatori**: Partita a tre giocatori in contemporanea sullo stesso schermo.
+- **🤖 Bot vs Bot**: Modalità spettatore per guardare due intelligenze artificiali sfidarsi tra loro.
+- **🏀 Multi-Sport**: Puoi scegliere tra il dataset del **Calcio** (oltre 150 calciatori e 18 grandi mister) e il dataset del **Basket NBA** (21 leggende e head coach NBA).
+
+---
+
+## 🧪 Per Sviluppatori: Test & Build
+
+### Eseguire la suite di test
+Tutti i test unitari e di integrazione (motore puro, calcolo coordinate esagonali assiali, generazione mappa con seed, intelligenza del bot e flood-fill) sono eseguiti tramite **Vitest**:
 ```bash
 npm run test
 ```
-Tutti i test (matching, indice invertito, generatore di griglie, simulazione motore, intelligenza artificiale del bot) sono eseguiti con **Vitest**.
 
-### 4. Build di Produzione
+### Compilazione per la produzione
+Per creare la build ottimizzata e minimizzata nella cartella `dist/`:
 ```bash
 npm run build
 ```
 
 ---
 
-## 🌐 Template Wikidata SPARQL
-È presente il file [`scripts/wikidata-importer.ts`](file:///Users/gabriel/Developer/antigravity_cli/gioco/scripts/wikidata-importer.ts) con la documentazione e le query SPARQL strutturate per estrarre calciatori e allenatori direttamente dal Query Service di Wikidata, insieme all'analisi sulla licenza (CC0) e sulla qualità dei dati (filtri competizioni, gestione ruoli e prestiti).
+## 🏛️ Architettura Tecnica
+
+- **Motore Logico Puro (`src/engine/`)**: Indipendente dal DOM, 100% deterministico e serializzabile in JSON. Può essere eseguito identicamente sia nel browser che su un server Node.js per future partite online.
+- **Coordinate Esagonali Assiali (`src/engine/hexGrid.ts`)**: Geometria esagonale rigorosa con formule matematiche assiali `(q, r)` e coordinate cubiche `s = -q - r`.
+- **Generatore di Griglie Bilanciate (`src/engine/boardGenerator.ts`)**: PRNG Mulberry32 con seed iniettabile; assicura che ogni esagono abbia sempre almeno 5 risposte valide e che le coppie confinanti condividano risposte per favorire combo e furti.
+- **Template Wikidata SPARQL (`scripts/wikidata-importer.ts`)**: Script e documentazione con query SPARQL pronte per espandere il dataset via Wikidata Query Service.
