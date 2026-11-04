@@ -2,30 +2,30 @@ import { Dataset, Entity, Category } from '../engine/types';
 
 export const BASKETBALL_CATEGORIES: Category[] = [
   // NBA Teams
-  { id: 'b_cat_lakers', label: 'Los Angeles Lakers 💜💛', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'lakers' },
-  { id: 'b_cat_celtics', label: 'Boston Celtics ☘️', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'celtics' },
-  { id: 'b_cat_warriors', label: 'Golden State Warriors 🌉', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'warriors' },
-  { id: 'b_cat_bulls', label: 'Chicago Bulls 🐂', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'bulls' },
-  { id: 'b_cat_heat', label: 'Miami Heat 🔥', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'heat' },
-  { id: 'b_cat_spurs', label: 'San Antonio Spurs 🥈', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'spurs' },
-  { id: 'b_cat_mavs', label: 'Dallas Mavericks 🐴', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'mavericks' },
+  { id: 'b_cat_lakers', label: 'Los Angeles Lakers', shortLabel: 'LA Lakers 💜', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'lakers', description: 'Ha giocato nei Los Angeles Lakers' },
+  { id: 'b_cat_celtics', label: 'Boston Celtics', shortLabel: 'Celtics ☘️', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'celtics', description: 'Ha giocato nei Boston Celtics' },
+  { id: 'b_cat_warriors', label: 'Golden State Warriors', shortLabel: 'Warriors 🌉', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'warriors', description: 'Ha giocato nei Golden State Warriors' },
+  { id: 'b_cat_bulls', label: 'Chicago Bulls', shortLabel: 'Bulls 🐂', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'bulls', description: 'Ha giocato nei Chicago Bulls' },
+  { id: 'b_cat_heat', label: 'Miami Heat', shortLabel: 'Heat 🔥', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'heat', description: 'Ha giocato nei Miami Heat' },
+  { id: 'b_cat_spurs', label: 'San Antonio Spurs', shortLabel: 'Spurs 🥈', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'spurs', description: 'Ha giocato nei San Antonio Spurs' },
+  { id: 'b_cat_mavs', label: 'Dallas Mavericks', shortLabel: 'Mavs 🐴', sport: 'basketball', type: 'team', attributeKey: 'teams', expectedValue: 'mavericks', description: 'Ha giocato nei Dallas Mavericks' },
 
   // Nationalities
-  { id: 'b_cat_usa', label: 'Stati Uniti 🇺🇸', sport: 'basketball', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'usa' },
-  { id: 'b_cat_int', label: 'Giocatore Internazionale (Non-USA) 🌍', sport: 'basketball', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'international' },
+  { id: 'b_cat_usa', label: 'Nazionalità USA', shortLabel: 'USA 🇺🇸', sport: 'basketball', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'usa', description: 'Nazionalità statunitense' },
+  { id: 'b_cat_int', label: 'Internazionale (Non-USA)', shortLabel: 'Mondo 🌍', sport: 'basketball', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'international', description: 'Giocatore internazionale (extra-USA)' },
 
   // Honours
-  { id: 'b_cat_ring', label: 'Campione NBA 💍', sport: 'basketball', type: 'honour', attributeKey: 'honours', expectedValue: 'nba_champion' },
-  { id: 'b_cat_mvp', label: 'NBA MVP 🏆', sport: 'basketball', type: 'honour', attributeKey: 'honours', expectedValue: 'nba_mvp' },
-  { id: 'b_cat_fmvp', label: 'Finals MVP 🥇', sport: 'basketball', type: 'honour', attributeKey: 'honours', expectedValue: 'finals_mvp' },
+  { id: 'b_cat_ring', label: 'Campione NBA (Anello)', shortLabel: 'Anello NBA 💍', sport: 'basketball', type: 'honour', attributeKey: 'honours', expectedValue: 'nba_champion', description: 'Ha vinto il titolo NBA' },
+  { id: 'b_cat_mvp', label: 'NBA Regular Season MVP', shortLabel: 'MVP 🏆', sport: 'basketball', type: 'honour', attributeKey: 'honours', expectedValue: 'nba_mvp', description: 'Vincitore del premio NBA MVP' },
+  { id: 'b_cat_fmvp', label: 'NBA Finals MVP', shortLabel: 'Finals MVP 🥇', sport: 'basketball', type: 'honour', attributeKey: 'honours', expectedValue: 'finals_mvp', description: 'MVP delle Finali NBA' },
 
   // Positions
-  { id: 'b_cat_guard', label: 'Guard / Playmaker 🏀', sport: 'basketball', type: 'position', attributeKey: 'positions', expectedValue: 'guard' },
-  { id: 'b_cat_forward', label: 'Ala / Forward 💥', sport: 'basketball', type: 'position', attributeKey: 'positions', expectedValue: 'forward' },
-  { id: 'b_cat_center', label: 'Centro / Center 🛡️', sport: 'basketball', type: 'position', attributeKey: 'positions', expectedValue: 'center' },
+  { id: 'b_cat_guard', label: 'Guardia / Playmaker', shortLabel: 'Guardia 🏀', sport: 'basketball', type: 'position', attributeKey: 'positions', expectedValue: 'guard', description: 'Ruolo: Guardia / Playmaker' },
+  { id: 'b_cat_forward', label: 'Ala (Small/Power Forward)', shortLabel: 'Ala 💥', sport: 'basketball', type: 'position', attributeKey: 'positions', expectedValue: 'forward', description: 'Ruolo: Ala (Forward)' },
+  { id: 'b_cat_center', label: 'Centro (Pivot)', shortLabel: 'Centro 🛡️', sport: 'basketball', type: 'position', attributeKey: 'positions', expectedValue: 'center', description: 'Ruolo: Centro (Center)' },
 
   // Roles
-  { id: 'b_cat_coach', label: 'Capo Allenatore NBA 📋', sport: 'basketball', type: 'role', attributeKey: 'type', expectedValue: 'coach' },
+  { id: 'b_cat_coach', label: 'Capo Allenatore NBA', shortLabel: 'Head Coach 📋', sport: 'basketball', type: 'role', attributeKey: 'type', expectedValue: 'coach', description: 'Head Coach in NBA' },
 ];
 
 export const BASKETBALL_ENTITIES: Entity[] = [

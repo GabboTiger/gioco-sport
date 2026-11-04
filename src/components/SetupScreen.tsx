@@ -11,6 +11,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onStartGame }) => {
   const [mode, setMode] = useState<ModeType>('vs_bot');
   const [sport, setSport] = useState<string>('football');
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>('medium');
+  const [chainConquestMode, setChainConquestMode] = useState<'flood_fill' | 'direct'>('flood_fill');
   const [timerDurationSec, setTimerDurationSec] = useState<number>(60);
   const [seed, setSeed] = useState<number>(() => Math.floor(Math.random() * 900000) + 100000);
 
@@ -63,6 +64,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onStartGame }) => {
     const config: GameConfig = {
       sport,
       timerDurationSec,
+      chainConquestMode,
       seed,
       minAnswersPerHex: 5,
       players,
@@ -258,6 +260,52 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onStartGame }) => {
           </div>
         </div>
       )}
+
+      {/* Conquest Mode (Flood fill vs Direct) */}
+      <div style={{ marginBottom: '24px' }}>
+        <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#cbd5e1', marginBottom: '8px' }}>
+          Regola di Conquista a Catena
+        </label>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <button
+            type="button"
+            onClick={() => setChainConquestMode('flood_fill')}
+            style={{
+              padding: '12px',
+              borderRadius: '10px',
+              border: chainConquestMode === 'flood_fill' ? '2px solid #38bdf8' : '1px solid #1e293b',
+              backgroundColor: chainConquestMode === 'flood_fill' ? '#1a2740' : '#0c101a',
+              color: '#ffffff',
+              textAlign: 'left',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ fontWeight: 800, fontSize: '13px' }}>🔗 Catena Continua (Flood Fill)</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+              Conquista tutti gli esagoni connessi dal medesimo criterio, anche se non adiacenti all'origine.
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setChainConquestMode('direct')}
+            style={{
+              padding: '12px',
+              borderRadius: '10px',
+              border: chainConquestMode === 'direct' ? '2px solid #38bdf8' : '1px solid #1e293b',
+              backgroundColor: chainConquestMode === 'direct' ? '#1a2740' : '#0c101a',
+              color: '#ffffff',
+              textAlign: 'left',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ fontWeight: 800, fontSize: '13px' }}>🎯 Adiacenza Diretta</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+              Conquista e ruba unicamente gli esagoni a contatto diretto con quello selezionato.
+            </div>
+          </button>
+        </div>
+      </div>
 
       {/* Timer and Seed */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '28px' }}>

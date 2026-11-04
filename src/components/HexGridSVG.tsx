@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { HexCell, Player, Entity } from '../engine/types';
-import { axialToPixel, getHexagonPolygonPoints, getAdjacentCells } from '../engine/hexGrid';
-import { matches } from '../engine/matching';
+import { axialToPixel, getHexagonPolygonPoints } from '../engine/hexGrid';
+import { calculateConquestImpact } from '../engine/gameEngine';
 
 interface HexGridSVGProps {
   board: HexCell[];
@@ -10,6 +10,8 @@ interface HexGridSVGProps {
   onSelectHex: (hexId: string) => void;
   previewEntity: Entity | null;
   activePlayer: Player;
+  chainConquestMode?: 'direct' | 'flood_fill';
+  hoveredLegendCatId?: string | null;
   isBotThinking?: boolean;
 }
 
@@ -20,6 +22,8 @@ export const HexGridSVG: React.FC<HexGridSVGProps> = ({
   onSelectHex,
   previewEntity,
   activePlayer,
+  chainConquestMode = 'flood_fill',
+  hoveredLegendCatId,
   isBotThinking,
 }) => {
   const hexRadius = 56;
@@ -40,34 +44,40 @@ export const HexGridSVG: React.FC<HexGridSVGProps> = ({
       return { conqueredIds: new Set<string>(), stolenIds: new Set<string>() };
     }
 
-    const conquered = new Set<string>([selectedHexId]);
-    const stolen = new Set<string>();
+    const { conqueredHexIds, stolenHexIds } = calculateConquestImpact(
+      selectedHexId,
+      previewEntity,
+      board,
+      activePlayer.id,
+      chainConquestMode
+    );
 
-    const adjacent = getAdjacentCells(selectedHexId, board);
-    for (const adj of adjacent) {
-      if (matches(previewEntity, adj.category)) {
-        if (adj.ownerId !== activePlayer.id) {
-          conquered.add(adj.id);
-          if (adj.ownerId !== null) {
-            stolen.add(adj.id);
-          }
-        }
-      }
+    return {
+      conqueredIds: new Set(conqueredHexIds),
+      stolenIds: new Set(stolenHexIds),
+    };
+  }, [previewEntity, selectedHexId, board, activePlayer.id, chainConquestMode]);
+
+  // Helper to split labels into 1-2 short, readable lines that fit cleanly inside the hexagon
+  const formatLabel = (category: { shortLabel?: string; label: string }): string[] => {
+    const text = category.shortLabel || category.label;
+    const words = text.split(' ');
+
+    if (words.length === 1) {
+      return [words[0]];
     }
 
-    return { conqueredIds: conquered, stolenIds: stolen };
-  }, [previewEntity, selectedHexId, board, activePlayer.id]);
+    if (words.length === 2) {
+      // e.g. "R. Madrid", "Man. Utd", "Italia 🇮🇹", "UCL 🏆"
+      return [words[0], words[1]];
+    }
 
-  // Helper to split labels into 2-3 readable lines for SVG
-  const formatLabel = (label: string): string[] => {
-    // If emoji at end or special phrase, split cleanly
-    const words = label.split(' ');
-    if (words.length <= 2) return [label];
-    if (words.length === 3) return [words[0], `${words[1]} ${words[2]}`];
-    return [
-      `${words[0]} ${words[1]}`,
-      words.slice(2).join(' '),
-    ];
+    // 3 or more words: e.g. "BVB Dortmund", "Pall. d'Oro 🥇"
+    if (words.length === 3) {
+      return [`${words[0]} ${words[1]}`, words[2]];
+    }
+
+    return [`${words[0]} ${words[1]}`, words.slice(2).join(' ')];
   };
 
   return (
@@ -140,7 +150,18 @@ export const HexGridSVG: React.FC<HexGridSVGProps> = ({
             strokeWidth = 3.5;
           }
 
-          const lines = formatLabel(cell.category.label);
+          const isHoveredFromLegend = hoveredLegendCatId === cell.category.id;
+
+          if (isHoveredFromLegend) {
+            strokeColor = '#fbbf24';
+            strokeWidth = 3.5;
+            filter = 'url(#activeGlow)';
+          }
+
+          const lines = formatLabel(cell.category);
+          const maxLineLen = Math.max(...lines.map((l) => l.length));
+          const fontSize = maxLineLen > 11 ? 9.5 : maxLineLen > 8 ? 11 : 12;
+          const lineHeight = fontSize + 4;
 
           return (
             <g
@@ -156,6 +177,8 @@ export const HexGridSVG: React.FC<HexGridSVGProps> = ({
               }}
               className="hex-cell-group"
             >
+              <title>{cell.category.label} {cell.category.description ? `— ${cell.category.description}` : ''}</title>
+
               {/* Outer selection pulse circle if active */}
               {isSelected && (
                 <circle
@@ -213,15 +236,15 @@ export const HexGridSVG: React.FC<HexGridSVGProps> = ({
               {/* Category Label Text */}
               <text
                 x={x}
-                y={y - (lines.length > 1 ? 6 : 0)}
+                y={y - (lines.length > 1 ? (lines.length - 1) * (lineHeight / 2) : 0)}
                 textAnchor="middle"
                 dominantBaseline="central"
                 fill={owner ? '#ffffff' : '#f1f5f9'}
-                fontSize={hexRadius * 0.21}
+                fontSize={fontSize}
                 fontWeight="700"
                 style={{
                   pointerEvents: 'none',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.85)',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.9)',
                   letterSpacing: '-0.2px',
                 }}
               >
@@ -229,7 +252,7 @@ export const HexGridSVG: React.FC<HexGridSVGProps> = ({
                   <tspan
                     key={idx}
                     x={x}
-                    dy={idx === 0 ? 0 : 15}
+                    dy={idx === 0 ? 0 : lineHeight}
                   >
                     {line}
                   </tspan>

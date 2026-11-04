@@ -2,62 +2,62 @@ import { Dataset, Entity, Category } from '../engine/types';
 
 export const FOOTBALL_CATEGORIES: Category[] = [
   // Clubs - Serie A
-  { id: 'cat_milan', label: 'AC Milan', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'milan' },
-  { id: 'cat_inter', label: 'Inter', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'inter' },
-  { id: 'cat_juventus', label: 'Juventus', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'juventus' },
-  { id: 'cat_roma', label: 'Roma', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'roma' },
-  { id: 'cat_napoli', label: 'Napoli', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'napoli' },
-  { id: 'cat_lazio', label: 'Lazio', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'lazio' },
-  { id: 'cat_atalanta', label: 'Atalanta', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'atalanta' },
+  { id: 'cat_milan', label: 'AC Milan', shortLabel: 'Milan', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'milan', description: 'Ha militato nell\'AC Milan' },
+  { id: 'cat_inter', label: 'Inter', shortLabel: 'Inter', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'inter', description: 'Ha militato nell\'Inter' },
+  { id: 'cat_juventus', label: 'Juventus', shortLabel: 'Juventus', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'juventus', description: 'Ha militato nella Juventus' },
+  { id: 'cat_roma', label: 'AS Roma', shortLabel: 'Roma', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'roma', description: 'Ha militato nella Roma' },
+  { id: 'cat_napoli', label: 'SSC Napoli', shortLabel: 'Napoli', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'napoli', description: 'Ha militato nel Napoli' },
+  { id: 'cat_lazio', label: 'SS Lazio', shortLabel: 'Lazio', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'lazio', description: 'Ha militato nella Lazio' },
+  { id: 'cat_atalanta', label: 'Atalanta BC', shortLabel: 'Atalanta', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'atalanta', description: 'Ha militato nell\'Atalanta' },
 
   // Clubs - Premier League
-  { id: 'cat_man_utd', label: 'Manchester United', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'man_united' },
-  { id: 'cat_man_city', label: 'Manchester City', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'man_city' },
-  { id: 'cat_liverpool', label: 'Liverpool', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'liverpool' },
-  { id: 'cat_arsenal', label: 'Arsenal', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'arsenal' },
-  { id: 'cat_chelsea', label: 'Chelsea', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'chelsea' },
-  { id: 'cat_tottenham', label: 'Tottenham', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'tottenham' },
+  { id: 'cat_man_utd', label: 'Manchester United', shortLabel: 'Man. Utd', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'man_united', description: 'Ha giocato nel Manchester United' },
+  { id: 'cat_man_city', label: 'Manchester City', shortLabel: 'Man. City', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'man_city', description: 'Ha giocato nel Manchester City' },
+  { id: 'cat_liverpool', label: 'Liverpool FC', shortLabel: 'Liverpool', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'liverpool', description: 'Ha giocato nel Liverpool' },
+  { id: 'cat_arsenal', label: 'Arsenal FC', shortLabel: 'Arsenal', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'arsenal', description: 'Ha giocato nell\'Arsenal' },
+  { id: 'cat_chelsea', label: 'Chelsea FC', shortLabel: 'Chelsea', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'chelsea', description: 'Ha giocato nel Chelsea' },
+  { id: 'cat_tottenham', label: 'Tottenham Hotspur', shortLabel: 'Spurs', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'tottenham', description: 'Ha giocato nel Tottenham' },
 
   // Clubs - La Liga
-  { id: 'cat_real_madrid', label: 'Real Madrid', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'real_madrid' },
-  { id: 'cat_barcelona', label: 'Barcelona', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'barcelona' },
-  { id: 'cat_atletico', label: 'Atlético Madrid', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'atletico_madrid' },
+  { id: 'cat_real_madrid', label: 'Real Madrid CF', shortLabel: 'R. Madrid', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'real_madrid', description: 'Ha militato nel Real Madrid' },
+  { id: 'cat_barcelona', label: 'FC Barcelona', shortLabel: 'Barça', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'barcelona', description: 'Ha militato nel Barcelona' },
+  { id: 'cat_atletico', label: 'Atlético Madrid', shortLabel: 'Atl. Madrid', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'atletico_madrid', description: 'Ha militato nell\'Atlético Madrid' },
 
   // Clubs - Other Europe
-  { id: 'cat_bayern', label: 'Bayern Monaco', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'bayern' },
-  { id: 'cat_dortmund', label: 'Borussia Dortmund', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'dortmund' },
-  { id: 'cat_psg', label: 'Paris Saint-Germain', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'psg' },
+  { id: 'cat_bayern', label: 'Bayern Monaco', shortLabel: 'Bayern', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'bayern', description: 'Ha militato nel Bayern Monaco' },
+  { id: 'cat_dortmund', label: 'Borussia Dortmund', shortLabel: 'BVB Dortmund', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'dortmund', description: 'Ha militato nel Borussia Dortmund' },
+  { id: 'cat_psg', label: 'Paris Saint-Germain', shortLabel: 'PSG', sport: 'football', type: 'team', attributeKey: 'teams', expectedValue: 'psg', description: 'Ha militato nel Paris Saint-Germain' },
 
   // Nationalities
-  { id: 'cat_nat_ita', label: 'Italia 🇮🇹', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'italy' },
-  { id: 'cat_nat_arg', label: 'Argentina 🇦🇷', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'argentina' },
-  { id: 'cat_nat_bra', label: 'Brasile 🇧🇷', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'brazil' },
-  { id: 'cat_nat_fra', label: 'Francia 🇫🇷', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'france' },
-  { id: 'cat_nat_esp', label: 'Spagna 🇪🇸', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'spain' },
-  { id: 'cat_nat_eng', label: 'Inghilterra 🏴󠁧󠁢󠁥󠁮󠁧󠁿', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'england' },
-  { id: 'cat_nat_ger', label: 'Germania 🇩🇪', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'germany' },
-  { id: 'cat_nat_por', label: 'Portogallo 🇵🇹', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'portugal' },
-  { id: 'cat_nat_ned', label: 'Olanda 🇳🇱', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'netherlands' },
-  { id: 'cat_nat_cro', label: 'Croazia 🇭🇷', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'croatia' },
-  { id: 'cat_nat_bel', label: 'Belgio 🇧🇪', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'belgium' },
+  { id: 'cat_nat_ita', label: 'Nazionalità Italiana', shortLabel: 'Italia 🇮🇹', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'italy', description: 'Ha nazionalità italiana' },
+  { id: 'cat_nat_arg', label: 'Nazionalità Argentina', shortLabel: 'Argentina 🇦🇷', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'argentina', description: 'Ha nazionalità argentina' },
+  { id: 'cat_nat_bra', label: 'Nazionalità Brasiliana', shortLabel: 'Brasile 🇧🇷', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'brazil', description: 'Ha nazionalità brasiliana' },
+  { id: 'cat_nat_fra', label: 'Nazionalità Francese', shortLabel: 'Francia 🇫🇷', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'france', description: 'Ha nazionalità francese' },
+  { id: 'cat_nat_esp', label: 'Nazionalità Spagnola', shortLabel: 'Spagna 🇪🇸', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'spain', description: 'Ha nazionalità spagnola' },
+  { id: 'cat_nat_eng', label: 'Nazionalità Inglese', shortLabel: 'Inghilterra 🏴󠁧󠁢󠁥󠁮󠁧󠁿', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'england', description: 'Ha nazionalità inglese' },
+  { id: 'cat_nat_ger', label: 'Nazionalità Tedesca', shortLabel: 'Germania 🇩🇪', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'germany', description: 'Ha nazionalità tedesca' },
+  { id: 'cat_nat_por', label: 'Nazionalità Portoghese', shortLabel: 'Portogallo 🇵🇹', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'portugal', description: 'Ha nazionalità portoghese' },
+  { id: 'cat_nat_ned', label: 'Nazionalità Olandese', shortLabel: 'Olanda 🇳🇱', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'netherlands', description: 'Ha nazionalità olandese' },
+  { id: 'cat_nat_cro', label: 'Nazionalità Croata', shortLabel: 'Croazia 🇭🇷', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'croatia', description: 'Ha nazionalità croata' },
+  { id: 'cat_nat_bel', label: 'Nazionalità Belga', shortLabel: 'Belgio 🇧🇪', sport: 'football', type: 'nationality', attributeKey: 'nationalities', expectedValue: 'belgium', description: 'Ha nazionalità belga' },
 
   // Honours / Trophies
-  { id: 'cat_ucl', label: 'Ha vinto la Champions League 🏆', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'champions_league' },
-  { id: 'cat_world_cup', label: 'Campione del Mondo 🌍', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'world_cup' },
-  { id: 'cat_ballon_dor', label: "Pallone d'Oro 🥇", sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'ballon_dor' },
-  { id: 'cat_scudetto', label: 'Campione d\'Italia (Scudetto) 🇮🇹', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'scudetto' },
-  { id: 'cat_premier', label: 'Campione Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'premier_league' },
-  { id: 'cat_liga', label: 'Campione La Liga 🇪🇸', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'la_liga' },
-  { id: 'cat_euro', label: 'Campione d\'Europa (Nazionale) 🇪🇺', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'euro' },
+  { id: 'cat_ucl', label: 'UEFA Champions League', shortLabel: 'UCL 🏆', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'champions_league', description: 'Ha vinto la Champions League' },
+  { id: 'cat_world_cup', label: 'Coppa del Mondo FIFA', shortLabel: 'Mondiale 🌍', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'world_cup', description: 'Campione del Mondo con la Nazionale' },
+  { id: 'cat_ballon_dor', label: 'Pallone d\'Oro', shortLabel: 'Pall. d\'Oro 🥇', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'ballon_dor', description: 'Vincitore del Pallone d\'Oro' },
+  { id: 'cat_scudetto', label: 'Scudetto Serie A', shortLabel: 'Scudetto 🇮🇹', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'scudetto', description: 'Campione d\'Italia (Serie A)' },
+  { id: 'cat_premier', label: 'Premier League', shortLabel: 'Premier 🏴󠁧󠁢󠁥󠁮󠁧󠁿', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'premier_league', description: 'Campione d\'Inghilterra (Premier League)' },
+  { id: 'cat_liga', label: 'La Liga Spagnola', shortLabel: 'LaLiga 🇪🇸', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'la_liga', description: 'Campione di Spagna (La Liga)' },
+  { id: 'cat_euro', label: 'Campionato Europeo UEFA', shortLabel: 'Euro Naz. 🇪🇺', sport: 'football', type: 'honour', attributeKey: 'honours', expectedValue: 'euro', description: 'Campione d\'Europa con la Nazionale' },
 
   // Positions
-  { id: 'cat_pos_att', label: 'Attaccante ⚽', sport: 'football', type: 'position', attributeKey: 'positions', expectedValue: 'forward' },
-  { id: 'cat_pos_mid', label: 'Centrocampista 🎯', sport: 'football', type: 'position', attributeKey: 'positions', expectedValue: 'midfielder' },
-  { id: 'cat_pos_def', label: 'Difensore 🛡️', sport: 'football', type: 'position', attributeKey: 'positions', expectedValue: 'defender' },
-  { id: 'cat_pos_gk', label: 'Portiere 🧤', sport: 'football', type: 'position', attributeKey: 'positions', expectedValue: 'goalkeeper' },
+  { id: 'cat_pos_att', label: 'Attaccante / Punta', shortLabel: 'Attaccante ⚽', sport: 'football', type: 'position', attributeKey: 'positions', expectedValue: 'forward', description: 'Ruolo naturale: Attaccante' },
+  { id: 'cat_pos_mid', label: 'Centrocampista', shortLabel: 'Centrocamp. 🎯', sport: 'football', type: 'position', attributeKey: 'positions', expectedValue: 'midfielder', description: 'Ruolo naturale: Centrocampista' },
+  { id: 'cat_pos_def', label: 'Difensore', shortLabel: 'Difensore 🛡️', sport: 'football', type: 'position', attributeKey: 'positions', expectedValue: 'defender', description: 'Ruolo naturale: Difensore' },
+  { id: 'cat_pos_gk', label: 'Portiere', shortLabel: 'Portiere 🧤', sport: 'football', type: 'position', attributeKey: 'positions', expectedValue: 'goalkeeper', description: 'Ruolo naturale: Portiere' },
 
   // Roles / Special
-  { id: 'cat_role_coach', label: 'È un Allenatore 📋', sport: 'football', type: 'role', attributeKey: 'type', expectedValue: 'coach' },
+  { id: 'cat_role_coach', label: 'Allenatore / Mister', shortLabel: 'Allenatore 📋', sport: 'football', type: 'role', attributeKey: 'type', expectedValue: 'coach', description: 'Figura presente come Allenatore' },
 ];
 
 export const FOOTBALL_ENTITIES: Entity[] = [

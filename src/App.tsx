@@ -10,6 +10,7 @@ import { ScoreboardHeader } from './components/ScoreboardHeader';
 import { HexGridSVG } from './components/HexGridSVG';
 import { AutocompleteSearch } from './components/AutocompleteSearch';
 import { GameOverModal } from './components/GameOverModal';
+import { CategoryLegend } from './components/CategoryLegend';
 
 export const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -17,6 +18,7 @@ export const App: React.FC = () => {
   const [previewEntity, setPreviewEntity] = useState<Entity | null>(null);
   const [lastMoveResult, setLastMoveResult] = useState<MoveResult | null>(null);
   const [isBotThinking, setIsBotThinking] = useState(false);
+  const [hoveredLegendCatId, setHoveredLegendCatId] = useState<string | null>(null);
 
   // Timer reference
   const lastTickTimeRef = useRef<number>(Date.now());
@@ -177,7 +179,15 @@ export const App: React.FC = () => {
           }}
           previewEntity={previewEntity}
           activePlayer={activePlayer}
+          chainConquestMode={gameState.config.chainConquestMode}
+          hoveredLegendCatId={hoveredLegendCatId}
           isBotThinking={isBotThinking}
+        />
+
+        {/* Legend of abbreviations at the bottom of the board */}
+        <CategoryLegend
+          board={gameState.board}
+          onHoverCategory={setHoveredLegendCatId}
         />
 
         {/* Search Modal / Tray when a neutral hex is clicked */}

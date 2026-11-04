@@ -1,7 +1,6 @@
 import { Dataset, GameMove, GameState } from '../engine/types';
-import { getLegalMoves } from '../engine/gameEngine';
+import { getLegalMoves, calculateConquestImpact } from '../engine/gameEngine';
 import { getAdjacentCells } from '../engine/hexGrid';
-import { matches } from '../engine/matching';
 
 export interface EvaluatedMove {
   move: GameMove;
@@ -56,26 +55,21 @@ export function chooseBotMove(
     }
 
     const adjacent = getAdjacentCells(targetHex.id, state.board);
+    const chainMode = state.config.chainConquestMode ?? 'flood_fill';
 
     for (const entity of knownEntities) {
-      let score = 1; // 1 for target neutral hex
-      let conqueredCount = 1;
-      let stolenCount = 0;
+      const { conqueredHexIds, stolenHexIds } = calculateConquestImpact(
+        targetHex.id,
+        entity,
+        state.board,
+        activePlayer.id,
+        chainMode
+      );
 
-      for (const adj of adjacent) {
-        if (matches(entity, adj.category)) {
-          if (adj.ownerId !== activePlayer.id) {
-            conqueredCount++;
-            if (adj.ownerId !== null) {
-              // Stealing from opponent is extremely valuable
-              stolenCount++;
-              score += 2.5;
-            } else {
-              score += 1.2;
-            }
-          }
-        }
-      }
+      const conqueredCount = conqueredHexIds.length;
+      const stolenCount = stolenHexIds.length;
+
+      let score = conqueredCount * 1.2 + stolenCount * 2.0;
 
       // Hard mode bonus: prioritize hexes that expand existing player cluster
       if (difficulty === 'hard') {

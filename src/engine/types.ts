@@ -34,6 +34,7 @@ export type CategoryType = 'team' | 'nationality' | 'honour' | 'position' | 'lea
 export interface Category {
   id: string;
   label: string;
+  shortLabel?: string;
   sport: string;
   type: CategoryType;
   description?: string;
@@ -98,6 +99,7 @@ export interface MoveResult {
 export interface GameConfig {
   sport: string;
   timerDurationSec: number;
+  chainConquestMode?: 'direct' | 'flood_fill'; // 'flood_fill' connects chained matching hexes even if not directly touching origin
   players: Array<{
     name: string;
     color: string;

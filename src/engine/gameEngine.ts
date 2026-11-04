@@ -96,6 +96,67 @@ export function getLegalMoves(
 }
 
 /**
+ * Computes all hexes that will be conquered and stolen starting from an origin hex.
+ * Supports both 'direct' (immediate neighbors) and 'flood_fill' (chained connected hexes).
+ */
+export function calculateConquestImpact(
+  originHexId: string,
+  entity: Entity,
+  board: HexCell[],
+  activePlayerId: string,
+  chainMode: 'direct' | 'flood_fill' = 'flood_fill'
+): { conqueredHexIds: string[]; stolenHexIds: string[] } {
+  const targetHex = board.find((h) => h.id === originHexId);
+  if (!targetHex || !matches(entity, targetHex.category)) {
+    return { conqueredHexIds: [], stolenHexIds: [] };
+  }
+
+  const conqueredHexIds: string[] = [targetHex.id];
+  const stolenHexIds: string[] = [];
+
+  if (chainMode === 'direct') {
+    const adjacent = getAdjacentCells(targetHex.id, board);
+    for (const adj of adjacent) {
+      if (matches(entity, adj.category)) {
+        if (adj.ownerId !== activePlayerId) {
+          conqueredHexIds.push(adj.id);
+          if (adj.ownerId !== null) {
+            stolenHexIds.push(adj.id);
+          }
+        }
+      }
+    }
+  } else {
+    // Flood-fill chain reaction: connects chained matching hexes even if not directly touching origin
+    const queue: string[] = [targetHex.id];
+    const visited = new Set<string>([targetHex.id]);
+
+    while (queue.length > 0) {
+      const currId = queue.shift()!;
+      const neighbors = getAdjacentCells(currId, board);
+
+      for (const adj of neighbors) {
+        if (!visited.has(adj.id)) {
+          visited.add(adj.id);
+          if (matches(entity, adj.category)) {
+            if (adj.ownerId !== activePlayerId) {
+              conqueredHexIds.push(adj.id);
+              if (adj.ownerId !== null) {
+                stolenHexIds.push(adj.id);
+              }
+            }
+            // Propagate along matching chain
+            queue.push(adj.id);
+          }
+        }
+      }
+    }
+  }
+
+  return { conqueredHexIds, stolenHexIds };
+}
+
+/**
  * Applies a move deterministically and returns the updated state plus conquest info.
  */
 export function applyMove(
@@ -146,34 +207,26 @@ export function applyMove(
 
   // Deep clone board for pure state immutability
   const nextBoard: HexCell[] = state.board.map((cell) => ({ ...cell }));
-  const conqueredHexIds: string[] = [targetHex.id];
-  const stolenHexIds: string[] = [];
 
-  // 1. Conquer target hex
-  nextBoard[targetHexIndex] = {
-    ...nextBoard[targetHexIndex],
-    ownerId: move.playerId,
-    conqueredOnTurn: state.turnCount + 1,
-  };
+  // Calculate conquests and steals according to configured chain mode (default 'flood_fill')
+  const chainMode = state.config.chainConquestMode ?? 'flood_fill';
+  const { conqueredHexIds, stolenHexIds } = calculateConquestImpact(
+    targetHex.id,
+    entity,
+    state.board,
+    move.playerId,
+    chainMode
+  );
 
-  // 2. Check all adjacent hexes for chain conquest / stealing
-  const adjacentCells = getAdjacentCells(targetHex.id, nextBoard);
-  for (const adj of adjacentCells) {
-    // If adjacent hex also matches entity, player claims it!
-    if (matches(entity, adj.category)) {
-      if (adj.ownerId !== move.playerId) {
-        if (adj.ownerId !== null) {
-          stolenHexIds.push(adj.id);
-        }
-        conqueredHexIds.push(adj.id);
-
-        const adjIdx = nextBoard.findIndex((h) => h.id === adj.id);
-        nextBoard[adjIdx] = {
-          ...nextBoard[adjIdx],
-          ownerId: move.playerId,
-          conqueredOnTurn: state.turnCount + 1,
-        };
-      }
+  // Apply conquests to board
+  for (const hexId of conqueredHexIds) {
+    const idx = nextBoard.findIndex((h) => h.id === hexId);
+    if (idx !== -1) {
+      nextBoard[idx] = {
+        ...nextBoard[idx],
+        ownerId: move.playerId,
+        conqueredOnTurn: state.turnCount + 1,
+      };
     }
   }
 

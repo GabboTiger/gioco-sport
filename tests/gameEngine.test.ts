@@ -199,4 +199,59 @@ describe('gameEngine', () => {
     const winner = computeWinner(state.board, state.players);
     expect(winner).toBe(state.players[0].id);
   });
+
+  it('supports flood_fill chain conquest of non-adjacent hexes connected by matching intermediate hexes', () => {
+    // Messi matches Champions League, Barcelona, and Argentina
+    const messi = FOOTBALL_DATASET.entities.find((e) => e.id === 'messi')!;
+    const catA = FOOTBALL_DATASET.categories.find((c) => c.id === 'cat_barcelona')!;
+    const catB = FOOTBALL_DATASET.categories.find((c) => c.id === 'cat_ucl')!;
+    const catC = FOOTBALL_DATASET.categories.find((c) => c.id === 'cat_nat_arg')!;
+
+    // Create a chain of 3 cells: (0,0) -> (1,0) -> (2,0)
+    // (0,0) is adjacent to (1,0)
+    // (1,0) is adjacent to (2,0)
+    // (0,0) is NOT adjacent to (2,0) (distance = 2)
+    const customConfig: GameConfig = {
+      ...baseConfig,
+      chainConquestMode: 'flood_fill',
+    };
+
+    const state = initGameState(customConfig, FOOTBALL_DATASET);
+    state.board[0] = { id: 'hex_0_0', q: 0, r: 0, category: catA, ownerId: null };
+    state.board[1] = { id: 'hex_1_0', q: 1, r: 0, category: catB, ownerId: null };
+    state.board[2] = { id: 'hex_2_0', q: 2, r: 0, category: catC, ownerId: null };
+
+    // Move on hex_0_0 with flood_fill mode
+    const { nextState, result } = applyMove(
+      state,
+      { playerId: state.players[0].id, hexId: 'hex_0_0', entityId: messi.id },
+      FOOTBALL_DATASET
+    );
+
+    // All 3 hexes must be conquered because hex_2_0 is connected via hex_1_0!
+    expect(result.conqueredHexIds).toContain('hex_0_0');
+    expect(result.conqueredHexIds).toContain('hex_1_0');
+    expect(result.conqueredHexIds).toContain('hex_2_0');
+    expect(nextState.board.find((h) => h.id === 'hex_2_0')!.ownerId).toBe(state.players[0].id);
+
+    // Conversely, in 'direct' mode, hex_2_0 would NOT be conquered
+    const directConfig: GameConfig = {
+      ...baseConfig,
+      chainConquestMode: 'direct',
+    };
+    const directState = initGameState(directConfig, FOOTBALL_DATASET);
+    directState.board[0] = { id: 'hex_0_0', q: 0, r: 0, category: catA, ownerId: null };
+    directState.board[1] = { id: 'hex_1_0', q: 1, r: 0, category: catB, ownerId: null };
+    directState.board[2] = { id: 'hex_2_0', q: 2, r: 0, category: catC, ownerId: null };
+
+    const { result: directResult } = applyMove(
+      directState,
+      { playerId: directState.players[0].id, hexId: 'hex_0_0', entityId: messi.id },
+      FOOTBALL_DATASET
+    );
+
+    expect(directResult.conqueredHexIds).toContain('hex_0_0');
+    expect(directResult.conqueredHexIds).toContain('hex_1_0');
+    expect(directResult.conqueredHexIds).not.toContain('hex_2_0');
+  });
 });
