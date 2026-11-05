@@ -126,4 +126,9 @@ npx tsx scripts/test-csp-generator.ts
 - **Coordinate Esagonali Assiali (`src/engine/hexGrid.ts`)**: Geometria esagonale rigorosa con formule matematiche assiali `(q, r)` e coordinate cubiche `s = -q - r`.
 - **Generatore di Griglie CSP con Garanzia 100% (`src/engine/boardGenerator.ts` e `boardValidation.ts`)**: Generatore basato su Constraint Satisfaction Problem (CSP con backtracking e ordinamento BFS dal centro). Garantisce al **100%** che **tutte le 72 coppie di esagoni adiacenti condividano almeno un'entità valida**, eliminando qualsiasi coppia disgiunta o "muro cieco".
 - **Pannello Debug Adiacenze a Runtime**: Toggle integrato nella testata (`🛠️ Debug ON/OFF`) per visualizzare in tempo reale sulla mappa i collegamenti tra esagoni e il numero di entità condivise per ciascuna coppia adiacente.
+- **Interfaccia Grafica Adattiva con Zoom & Pan (`src/components/HexGridSVG.tsx`)**:
+  - Supporto a zoom continuo da 0.6x a 2.5x con rotella mouse, pinch-to-zoom su mobile e pulsanti overlay a schermo (`➕`, `➖`, `↺ Ripristina`).
+  - Spostamento pan/drag fluido con mouse e touch (con soglia intelligente per non confondere trascinamenti con click su esagoni).
+  - Etichette categorie ad alto contrasto con outline scuro vettoriale (`paint-order: stroke fill`) leggibili a qualsiasi livello di ingrandimento.
+  - Segnapunti sticky in cima con animazioni numeriche reattive (`score-bump`) e timer di grande formato.
 - **Template Wikidata SPARQL (`scripts/wikidata-importer.ts`)**: Script e documentazione con query SPARQL pronte per espandere il dataset via Wikidata Query Service.

@@ -172,7 +172,7 @@ export const App: React.FC = () => {
         <div
           style={{
             width: '100%',
-            maxWidth: '920px',
+            maxWidth: '1080px',
             margin: '0 auto 12px auto',
             padding: '12px 18px',
             backgroundColor: '#0f172a',

@@ -42,23 +42,29 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
+  const isLowTime = activePlayer.timeRemainingMs < 10000 && activePlayer.timeRemainingMs > 0;
+
   return (
     <header
       style={{
         width: '100%',
-        maxWidth: '920px',
+        maxWidth: '1080px',
         margin: '0 auto 16px auto',
-        padding: '16px 20px',
-        backgroundColor: '#121929',
-        border: '1px solid #1e2c44',
-        borderRadius: '16px',
+        padding: '16px 22px',
+        backgroundColor: 'rgba(18, 25, 41, 0.95)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid #1f2c42',
+        borderRadius: '18px',
         display: 'flex',
         flexDirection: 'column',
         gap: '14px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.55)',
+        position: 'sticky',
+        top: '8px',
+        zIndex: 40,
       }}
     >
-      {/* Top row: Title, Active Turn, and New Game Button */}
+      {/* Top row: Brand Title, Turn & Clock Banner, and Controls */}
       <div
         style={{
           display: 'flex',
@@ -71,14 +77,15 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: '12px',
-              height: '12px',
+              width: '14px',
+              height: '14px',
               borderRadius: '50%',
-              backgroundColor: '#38bdf8',
-              boxShadow: '0 0 10px #38bdf8',
+              backgroundColor: activePlayer.color,
+              boxShadow: `0 0 12px ${activePlayer.color}`,
+              transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
             }}
           />
-          <h1 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.5px' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.5px', color: '#ffffff' }}>
             HEX TERRITORY QUIZ
           </h1>
         </div>
@@ -88,20 +95,22 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '14px',
+            gap: '12px',
             backgroundColor: '#0c101a',
-            padding: '6px 16px',
+            padding: '7px 18px',
             borderRadius: '30px',
             border: `2px solid ${activePlayer.color}`,
+            boxShadow: `0 0 16px ${activePlayer.color}25`,
+            transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>TURNO:</span>
-            <span style={{ fontWeight: 800, color: activePlayer.color, fontSize: '15px' }}>
+            <span style={{ fontWeight: 800, color: activePlayer.color, fontSize: '16px' }}>
               {activePlayer.name} {activePlayer.isBot ? '🤖' : ''}
             </span>
             {state.players.length > 2 && (
-              <span style={{ fontSize: '11px', color: '#64748b' }}>
+              <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '2px' }}>
                 (poi {nextPlayer.name})
               </span>
             )}
@@ -110,9 +119,12 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
           <div
             style={{
               fontFamily: 'monospace',
-              fontSize: '18px',
-              fontWeight: 700,
-              color: activePlayer.timeRemainingMs < 10000 ? '#f43f5e' : '#f8fafc',
+              fontSize: '20px',
+              fontWeight: 800,
+              color: isLowTime ? '#f43f5e' : '#f8fafc',
+              animation: isLowTime ? 'pulseGlow 1s infinite' : 'none',
+              minWidth: '70px',
+              textAlign: 'center',
             }}
           >
             ⏱️ {formatTimer(activePlayer.timeRemainingMs)}
@@ -127,7 +139,7 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
                 animation: 'pulseGlow 1.5s infinite',
               }}
             >
-              Il bot sta pensando...
+              Bot pensa...
             </span>
           )}
         </div>
@@ -167,16 +179,16 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
               transition: 'background-color 0.15s',
             }}
           >
-            ⚙️ Nuova Partita
+            ⚙️ Setup
           </button>
         </div>
       </div>
 
-      {/* Middle row: Live Scoreboard Cards */}
+      {/* Middle row: Live Scoreboard Cards with ScoreBump Animation */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${state.players.length + 1}, 1fr)`,
+          gridTemplateColumns: `repeat(auto-fit, minmax(130px, 1fr))`,
           gap: '10px',
         }}
       >
@@ -191,15 +203,20 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
             <div
               key={p.id}
               style={{
-                backgroundColor: isActive ? '#1a2438' : '#0e1422',
-                border: isActive ? `2px solid ${p.color}` : isTimedOut ? '1px solid #7f1d1d' : '1px solid #1a2538',
-                borderRadius: '10px',
-                padding: '10px 12px',
+                backgroundColor: isActive ? 'rgba(26, 36, 56, 0.95)' : '#0e1422',
+                border: isActive
+                  ? `2px solid ${p.color}`
+                  : isTimedOut
+                  ? '1px solid #7f1d1d'
+                  : '1px solid #1a2538',
+                borderRadius: '12px',
+                padding: '10px 14px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '4px',
-                opacity: isTimedOut ? 0.6 : 1,
-                transition: 'all 0.2s ease',
+                opacity: isTimedOut ? 0.55 : 1,
+                boxShadow: isActive ? `0 0 16px ${p.color}33` : 'none',
+                transition: 'all 0.25s ease',
               }}
             >
               <div
@@ -213,11 +230,20 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
                   gap: '4px',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   <div
                     style={{
-                      width: '8px',
-                      height: '8px',
+                      width: '9px',
+                      height: '9px',
                       borderRadius: '50%',
                       backgroundColor: p.color,
                       flexShrink: 0,
@@ -227,12 +253,30 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
                 </div>
 
                 {isTimedOut ? (
-                  <span style={{ fontSize: '9px', color: '#f87171', fontWeight: 800, backgroundColor: '#450a0a', padding: '1px 5px', borderRadius: '4px' }}>
+                  <span
+                    style={{
+                      fontSize: '9px',
+                      color: '#f87171',
+                      fontWeight: 800,
+                      backgroundColor: '#450a0a',
+                      padding: '1px 5px',
+                      borderRadius: '4px',
+                    }}
+                  >
                     OUT
                   </span>
                 ) : isActive ? (
-                  <span style={{ fontSize: '9px', color: p.color, fontWeight: 800, backgroundColor: 'rgba(255,255,255,0.1)', padding: '1px 5px', borderRadius: '4px' }}>
-                    ▶ TURNO
+                  <span
+                    style={{
+                      fontSize: '9px',
+                      color: p.color,
+                      fontWeight: 800,
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      padding: '1px 5px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    ▶ IN TURNO
                   </span>
                 ) : isNext && state.players.length > 2 ? (
                   <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 700 }}>
@@ -240,6 +284,7 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
                   </span>
                 ) : null}
               </div>
+
               <div
                 style={{
                   display: 'flex',
@@ -247,7 +292,14 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
                   alignItems: 'baseline',
                 }}
               >
-                <span style={{ fontSize: '24px', fontWeight: 800 }}>{score}</span>
+                {/* Score value with remount key to trigger scoreBump animation */}
+                <span
+                  key={score}
+                  className="score-bump"
+                  style={{ fontSize: '28px', fontWeight: 900, color: '#ffffff' }}
+                >
+                  {score}
+                </span>
                 <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
                   {pct}% ({totalHexes})
                 </span>
@@ -256,13 +308,13 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
           );
         })}
 
-        {/* Neutral Hexes Count */}
+        {/* Neutral Hexes Count Card */}
         <div
           style={{
             backgroundColor: '#0e1422',
             border: '1px solid #1a2538',
-            borderRadius: '10px',
-            padding: '10px 12px',
+            borderRadius: '12px',
+            padding: '10px 14px',
             display: 'flex',
             flexDirection: 'column',
             gap: '4px',
@@ -278,17 +330,21 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
               alignItems: 'baseline',
             }}
           >
-            <span style={{ fontSize: '24px', fontWeight: 800, color: '#94a3b8' }}>
+            <span
+              key={neutralCount}
+              className="score-bump"
+              style={{ fontSize: '28px', fontWeight: 900, color: '#94a3b8' }}
+            >
               {neutralCount}
             </span>
             <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
-              rimasti
+              liberi
             </span>
           </div>
         </div>
       </div>
 
-      {/* Bottom row: Last Action Ticker */}
+      {/* Bottom row: Live Move Ticker */}
       {lastMoveResult && (
         <div
           style={{

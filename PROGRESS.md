@@ -111,9 +111,43 @@ Questo documento traccia l'avanzamento dei blocchi di sviluppo definiti in `FIX_
 
 ---
 
-## ⏭️ Prossimi Passi (Blocco 4)
-- **Grafica e Segnapunti**:
-  - Scacchiera più grande che sfrutta tutto lo spazio disponibile (desktop e mobile).
-  - Zoom (rotella mouse, pinch to zoom, pulsanti + e -) e pan/drag con pulsante "Ripristina Vista".
-  - Etichette delle categorie adattive e leggibili a qualsiasi livello di zoom.
-  - Segnapunti più grande e sempre visibile con animazioni al cambio punteggio.
+## 📌 Blocco 4 - Grafica, Segnapunti, Zoom & Pan (Completato)
+
+### 1. Diagnosi iniziale effettuata
+- **Problema rilevato**: Il container SVG della scacchiera era limitato rigidamente a `maxWidth: 860px` senza possibilità di sfruttare display larghi o desktop; su mobile il testo risultava minuscolo e non c'era alcuna possibilità di zoom o spostamento (pan/drag); le schede del segnapunti erano statiche senza feedback visivo al cambio punteggio.
+
+### 2. Modifiche e decisioni architetturali
+- **Sistema di Zoom e Pan (`src/components/HexGridSVG.tsx`)**:
+  - Zoom dinamico scalabile da `0.6x` a `2.5x` con rotella mouse, pinch-to-zoom a 2 dita su mobile e pulsanti floating dedicati (`➕`, `➖`, `↺ Ripristina` e indicatore percentuale).
+  - Pan / Drag bidirezionale fluido con mouse e tocco singolo, con soglia di tolleranza di 5px per evitare falsi clic sulle caselle durante lo spostamento.
+  - Spazio della scacchiera allargato a `maxWidth: 1080px` per occupare l'intera area visibile.
+- **Etichette Categorie Adattive e Outline Vettoriale**:
+  - Testo SVG multilinea ottimizzato con auto-wrapping su 1-3 righe.
+  - Applicato `paint-order: stroke fill` con sottile contorno nero di 2.5px (`stroke="#070a12"`): rende il testo al 100% leggibile e contrastato contro qualsiasi colore (inclusi i colori vivaci dei territori conquistati come fucsia o ambra) e a qualsiasi livello di zoom.
+- **Segnapunti Ingrandito e Animato (`ScoreboardHeader.tsx`, `index.css`)**:
+  - Header sticky ancorato in cima allo schermo con `backdrop-filter: blur(12px)`.
+  - Punteggio a 28px con animazione CSS pop (`score-bump`) che rimbalza e brilla quando il punteggio cambia a seguito di conquiste o furti.
+  - Timer visibile a caratteri grandi in formato monospace con allarme pulsante per gli ultimi 10 secondi.
+
+### 3. Test Passati
+- **50 test su 50 superati** in Vitest:
+  - `tests/graphics.test.ts` (5 nuovi test):
+    - Calcolo bounding box per 31 e 37 esagoni all'interno del viewport 920x820.
+    - Algoritmo di auto-wrapping ed etichettatura per parole singole, doppie e multiple.
+    - Clamping dello zoom da 0.6x a 2.5x.
+  - `tests/multiplayer.test.ts` (13 test).
+  - `tests/boardValidation.test.ts` (6 test).
+  - `tests/boardGenerator.test.ts` (3 test).
+  - `tests/search.test.ts` (6 test).
+  - `tests/gameEngine.test.ts` (9 test).
+  - `tests/matching.test.ts` (6 test).
+  - `tests/botAgent.test.ts` (2 test).
+
+---
+
+## ⏭️ Prossimi Passi (Blocco 5)
+- **Regola "Stesso Giocatore Due Volte" come Modalità Selezionabile**:
+  - Introdurre l'opzione `allowRepeatedEntities` (booleano) nelle impostazioni di setup della partita.
+  - Definire il valore predefinito consigliato: `false` (regola classica dell'unicità come impostazione predefinita per stimolare la varietà; `true` come modalità alternativa "Libera / Arcade").
+  - Adattare il motore logico (`gameEngine.ts` e `matching.ts`) per permettere o vietare entità già usate in base all'opzione.
+  - Test unitari per entrambi i valori di `allowRepeatedEntities`.
