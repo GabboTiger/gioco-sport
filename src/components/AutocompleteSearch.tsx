@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Entity, HexCell, Player } from '../engine/types';
-import { normalizeString, matches } from '../engine/matching';
+import { matches } from '../engine/matching';
+import { searchEntities, SearchResult } from '../engine/search';
 
 interface AutocompleteSearchProps {
   entities: Entity[];
@@ -32,27 +33,23 @@ export const AutocompleteSearch: React.FC<AutocompleteSearchProps> = ({
 
   const usedSet = useMemo(() => new Set(usedEntityIds), [usedEntityIds]);
 
-  const filteredEntities = useMemo(() => {
+  const searchResults = useMemo((): SearchResult[] => {
     const trimmed = searchTerm.trim();
     if (!trimmed) return [];
 
-    const normalizedQuery = normalizeString(trimmed);
+    const rawResults = searchEntities(trimmed, entities, { limit: 12 });
 
-    const matchesList = entities.filter((entity) => {
-      const normName = normalizeString(entity.name);
-      return normName.includes(normalizedQuery);
-    });
+    // Sort giving priority to entities that match the category and are not yet used
+    return [...rawResults].sort((a, b) => {
+      const aMatches = matches(a.entity, selectedHex.category);
+      const bMatches = matches(b.entity, selectedHex.category);
+      const aUsed = usedSet.has(a.entity.id);
+      const bUsed = usedSet.has(b.entity.id);
 
-    // Sort: 1) Valid matching entities first, 2) By popularity descending
-    return matchesList.sort((a, b) => {
-      const aMatches = matches(a, selectedHex.category);
-      const bMatches = matches(b, selectedHex.category);
-      const aUsed = usedSet.has(a.id);
-      const bUsed = usedSet.has(b.id);
+      const aBonus = (aMatches ? 40 : 0) - (aUsed ? 30 : 0);
+      const bBonus = (bMatches ? 40 : 0) - (bUsed ? 30 : 0);
 
-      const aScore = (aMatches ? 10 : 0) - (aUsed ? 20 : 0) + a.popularity * 0.1;
-      const bScore = (bMatches ? 10 : 0) - (bUsed ? 20 : 0) + b.popularity * 0.1;
-      return bScore - aScore;
+      return (b.score + bBonus) - (a.score + aBonus);
     }).slice(0, 8);
   }, [searchTerm, entities, selectedHex.category, usedSet]);
 
@@ -151,8 +148,8 @@ export const AutocompleteSearch: React.FC<AutocompleteSearchProps> = ({
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              if (filteredEntities.length > 0 && !selectedEntity) {
-                handleSelect(filteredEntities[0]);
+              if (searchResults.length > 0 && !selectedEntity) {
+                handleSelect(searchResults[0].entity);
               } else if (selectedEntity) {
                 handleConfirm();
               }
@@ -164,10 +161,10 @@ export const AutocompleteSearch: React.FC<AutocompleteSearchProps> = ({
       </div>
 
       {/* Autocomplete Results */}
-      {filteredEntities.length > 0 && (
+      {searchResults.length > 0 && (
         <div
           style={{
-            maxHeight: '220px',
+            maxHeight: '230px',
             overflowY: 'auto',
             backgroundColor: '#0c101a',
             borderRadius: '10px',
@@ -175,7 +172,8 @@ export const AutocompleteSearch: React.FC<AutocompleteSearchProps> = ({
             marginBottom: '14px',
           }}
         >
-          {filteredEntities.map((entity) => {
+          {searchResults.map((result) => {
+            const { entity } = result;
             const isMatch = matches(entity, selectedHex.category);
             const isUsed = usedSet.has(entity.id);
             const isChosen = selectedEntity?.id === entity.id;
@@ -196,12 +194,52 @@ export const AutocompleteSearch: React.FC<AutocompleteSearchProps> = ({
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px', color: '#f8fafc' }}>
-                    {entity.name}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontWeight: 700, fontSize: '14px', color: '#f8fafc' }}>
+                      {entity.name}
+                    </span>
+                    {entity.type === 'coach' ? (
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          backgroundColor: 'rgba(168, 85, 247, 0.25)',
+                          color: '#c084fc',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        ALLENATORE 📋
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                          color: '#38bdf8',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        {entity.attributes.positions?.[0] || 'Giocatore'}
+                      </span>
+                    )}
+
+                    {result.matchedBy === 'alias' && result.matchedTerm && (
+                      <span style={{ fontSize: '11px', color: '#f59e0b', fontStyle: 'italic' }}>
+                        ({result.matchedTerm})
+                      </span>
+                    )}
+                    {result.matchedBy === 'fuzzy' && result.matchedTerm && (
+                      <span style={{ fontSize: '11px', color: '#a78bfa', fontStyle: 'italic' }}>
+                        (~{result.matchedTerm})
+                      </span>
+                    )}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                    {entity.metadata?.displayRole ?? (entity.type === 'coach' ? 'Allenatore' : 'Giocatore')} •{' '}
-                    {entity.metadata?.displayClub ?? ''} {entity.metadata?.displayNationality ? `(${entity.metadata.displayNationality})` : ''}
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+                    {entity.metadata?.displayClub ?? (entity.attributes.teams?.[0] || '')} •{' '}
+                    {entity.metadata?.displayNationality ? `(${entity.metadata.displayNationality})` : ''}
                   </div>
                 </div>
 

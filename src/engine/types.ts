@@ -7,6 +7,7 @@ export type EntityType = 'player' | 'coach';
 
 export interface EntityAttributes {
   teams?: string[];
+  managedTeams?: string[];
   nationalities?: string[];
   honours?: string[];
   positions?: string[];
@@ -17,6 +18,7 @@ export interface EntityAttributes {
 export interface Entity {
   id: string;
   name: string;
+  aliases?: string[];
   type: EntityType;
   sport: string;
   attributes: EntityAttributes;

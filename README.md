@@ -99,6 +99,16 @@ Per creare la build ottimizzata e minimizzata nella cartella `dist/`:
 npm run build
 ```
 
+### Script di Diagnosi e Report Qualità Dataset
+Per verificare l'accuratezza della ricerca (alias, fuzzy match) e la completezza delle categorie:
+```bash
+# Esegue il benchmark sui nomi campione e refusi
+npx tsx scripts/diagnose-search.ts
+
+# Genera il report di qualità e copertura delle categorie
+npx tsx scripts/dataset-report.ts
+```
+
 ---
 
 ## 🏛️ Architettura Tecnica

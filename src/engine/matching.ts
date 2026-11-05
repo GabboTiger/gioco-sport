@@ -32,7 +32,17 @@ export function matches(entity: Entity, category: Category): boolean {
     }
   }
 
-  const rawAttr = entity.attributes[attributeKey];
+  let rawAttr = entity.attributes[attributeKey];
+
+  // For 'teams' attribute, if entity is a coach, also include managedTeams
+  if (attributeKey === 'teams') {
+    const teams = Array.isArray(rawAttr) ? rawAttr : (rawAttr ? [rawAttr] : []);
+    const managed = Array.isArray(entity.attributes.managedTeams) ? entity.attributes.managedTeams : [];
+    if (managed.length > 0) {
+      rawAttr = Array.from(new Set([...teams, ...managed]));
+    }
+  }
+
   if (rawAttr === undefined || rawAttr === null) {
     return false;
   }
