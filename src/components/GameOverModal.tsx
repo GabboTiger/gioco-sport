@@ -59,7 +59,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({ state, onRematch, 
             : 'Nessun vincitore in tempo regolamentare.'}
         </p>
 
-        {/* Score Breakdown */}
+        {/* Score Breakdown / Podium */}
         <div
           style={{
             backgroundColor: '#0c101a',
@@ -71,39 +71,47 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({ state, onRematch, 
             gap: '10px',
           }}
         >
-          {state.players.map((p) => {
-            const count = scores[p.id] ?? 0;
-            const isWinner = p.id === state.winnerId;
+          {[...state.players]
+            .sort((a, b) => (scores[b.id] ?? 0) - (scores[a.id] ?? 0))
+            .map((p, rankIdx) => {
+              const count = scores[p.id] ?? 0;
+              const isWinner = p.id === state.winnerId;
+              const rankIcon =
+                rankIdx === 0 ? '🥇' : rankIdx === 1 ? '🥈' : rankIdx === 2 ? '🥉' : '4°';
 
-            return (
-              <div
-                key={p.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '8px 12px',
-                  borderRadius: '10px',
-                  backgroundColor: isWinner ? 'rgba(56, 189, 248, 0.12)' : 'transparent',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      backgroundColor: p.color,
-                    }}
-                  />
-                  <span style={{ fontWeight: 700, color: '#f8fafc' }}>{p.name}</span>
+              return (
+                <div
+                  key={p.id}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    backgroundColor: isWinner ? 'rgba(56, 189, 248, 0.12)' : 'transparent',
+                    border: isWinner ? `1px solid ${p.color}` : '1px solid transparent',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px', width: '22px', textAlign: 'center' }}>
+                      {rankIcon}
+                    </span>
+                    <div
+                      style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        backgroundColor: p.color,
+                      }}
+                    />
+                    <span style={{ fontWeight: 700, color: '#f8fafc' }}>{p.name}</span>
+                  </div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: p.color }}>
+                    {count} esagoni
+                  </div>
                 </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: p.color }}>
-                  {count} esagoni
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
           <div
             style={{

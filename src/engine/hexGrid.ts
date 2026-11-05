@@ -1,4 +1,4 @@
-import { AxialCoord, HexCell } from './types';
+import { AxialCoord, HexCell, GridSizeType } from './types';
 
 /**
  * Standard Axial Hex Directions (pointy-topped & flat-topped)
@@ -70,6 +70,37 @@ export function generate31HexCoords(): AxialCoord[] {
   });
 
   return coords;
+}
+
+/**
+ * Generates the expanded 37-hexagon board layout (regular radius 3 hexagon).
+ * Provides additional breathing room and strategic depth, ideal for 3-4 player games.
+ */
+export function generate37HexCoords(): AxialCoord[] {
+  const coords: AxialCoord[] = [];
+  const radius = 3;
+
+  for (let q = -radius; q <= radius; q++) {
+    const r1 = Math.max(-radius, -q - radius);
+    const r2 = Math.min(radius, -q + radius);
+    for (let r = r1; r <= r2; r++) {
+      coords.push({ q, r });
+    }
+  }
+
+  coords.sort((a, b) => {
+    if (a.r !== b.r) return a.r - b.r;
+    return a.q - b.q;
+  });
+
+  return coords;
+}
+
+/**
+ * Generates hex coordinates based on configured grid size.
+ */
+export function generateBoardCoords(gridSize: GridSizeType = 'standard_31'): AxialCoord[] {
+  return gridSize === 'expanded_37' ? generate37HexCoords() : generate31HexCoords();
 }
 
 /**

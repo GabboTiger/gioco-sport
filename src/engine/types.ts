@@ -98,10 +98,13 @@ export interface MoveResult {
   stolenHexIds: string[];    // Specifically stolen from opponents
 }
 
+export type GridSizeType = 'standard_31' | 'expanded_37';
+
 export interface GameConfig {
   sport: string;
   timerDurationSec: number;
   chainConquestMode?: 'direct' | 'flood_fill'; // 'flood_fill' connects chained matching hexes even if not directly touching origin
+  gridSize?: GridSizeType; // 'standard_31' (default 31 hexes) or 'expanded_37' (37 hexes, ideal for 3-4 players)
   players: Array<{
     name: string;
     color: string;

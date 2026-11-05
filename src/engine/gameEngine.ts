@@ -36,6 +36,7 @@ export class EngineError extends Error {
 export function initGameState(config: GameConfig, dataset: Dataset): GameState {
   const board = generateBoard(dataset, config.seed, {
     minAnswersPerHex: config.minAnswersPerHex ?? 5,
+    gridSize: config.gridSize ?? 'standard_31',
   });
 
   const players: Player[] = config.players.map((p, idx) => ({
@@ -256,10 +257,23 @@ export function applyMove(
 
   if (isGameOver) {
     nextPhase = 'game_over';
-    winnerId = computeWinner(nextBoard, state.players);
+    winnerId = computeWinner(nextBoard, state.players, [...state.history, {
+      move: { ...move, timestamp: Date.now() },
+      conqueredHexIds,
+      stolenHexIds,
+    }]);
   }
 
-  const nextActiveIndex = (state.activePlayerIndex + 1) % state.players.length;
+  // Turn rotation: find next player who still has time (or standard rotation if none/all)
+  let nextActiveIndex = (state.activePlayerIndex + 1) % state.players.length;
+  let checks = 0;
+  const anyPlayerHasTime = state.players.some((p) => p.timeRemainingMs > 0);
+  if (anyPlayerHasTime) {
+    while (state.players[nextActiveIndex].timeRemainingMs <= 0 && checks < state.players.length) {
+      nextActiveIndex = (nextActiveIndex + 1) % state.players.length;
+      checks++;
+    }
+  }
 
   const result: MoveResult = {
     move: { ...move, timestamp: Date.now() },
@@ -283,7 +297,8 @@ export function applyMove(
 
 /**
  * Advances timer by dtMs for active player.
- * If time runs out, skips to next player.
+ * If time runs out, skips to next player who still has time.
+ * If ALL players run out of time, ends the game immediately.
  */
 export function tick(state: GameState, dtMs: number): GameState {
   if (state.phase !== 'playing') return state;
@@ -297,9 +312,26 @@ export function tick(state: GameState, dtMs: number): GameState {
     idx === activeIdx ? { ...p, timeRemainingMs: newTime } : p
   );
 
-  // If time hit zero, skip turn
+  // If ALL players have run out of time, game terminates
+  const allTimedOut = updatedPlayers.every((p) => p.timeRemainingMs <= 0);
+  if (allTimedOut) {
+    return {
+      ...state,
+      players: updatedPlayers,
+      phase: 'game_over',
+      winnerId: computeWinner(state.board, updatedPlayers, state.history),
+    };
+  }
+
+  // If active player's time hit zero, skip to next player with remaining time
   if (newTime === 0) {
-    const nextIdx = (activeIdx + 1) % state.players.length;
+    let nextIdx = (activeIdx + 1) % state.players.length;
+    let checks = 0;
+    while (updatedPlayers[nextIdx].timeRemainingMs <= 0 && checks < updatedPlayers.length) {
+      nextIdx = (nextIdx + 1) % state.players.length;
+      checks++;
+    }
+
     return {
       ...state,
       players: updatedPlayers,
@@ -314,9 +346,17 @@ export function tick(state: GameState, dtMs: number): GameState {
 }
 
 /**
- * Computes game winner based on hex count, breaking ties with remaining time.
+ * Computes game winner based on:
+ * 1. Primary: Highest number of hexes owned
+ * 2. 1st Tie-breaker: Highest remaining time on clock
+ * 3. 2nd Tie-breaker: Highest number of hexes stolen from opponents
+ * 4. Fallback: Official 'tie'
  */
-export function computeWinner(board: HexCell[], players: Player[]): string | 'tie' {
+export function computeWinner(
+  board: HexCell[],
+  players: Player[],
+  history?: MoveResult[]
+): string | 'tie' {
   const scores = new Map<string, number>();
   for (const p of players) {
     scores.set(p.id, 0);
@@ -344,7 +384,7 @@ export function computeWinner(board: HexCell[], players: Player[]): string | 'ti
     return leaderIds[0];
   }
 
-  // Tie-breaker: Highest remaining time
+  // 1st Tie-breaker: Highest remaining time
   let maxTime = -1;
   let timeLeaderIds: string[] = [];
 
@@ -361,6 +401,39 @@ export function computeWinner(board: HexCell[], players: Player[]): string | 'ti
 
   if (timeLeaderIds.length === 1) {
     return timeLeaderIds[0];
+  }
+
+  // 2nd Tie-breaker: Highest number of stolen hexes from opponents
+  if (history && history.length > 0) {
+    const stealCounts = new Map<string, number>();
+    for (const pId of timeLeaderIds) {
+      stealCounts.set(pId, 0);
+    }
+
+    for (const record of history) {
+      if (stealCounts.has(record.move.playerId)) {
+        stealCounts.set(
+          record.move.playerId,
+          stealCounts.get(record.move.playerId)! + record.stolenHexIds.length
+        );
+      }
+    }
+
+    let maxSteals = -1;
+    let stealLeaderIds: string[] = [];
+
+    for (const [pId, steals] of stealCounts.entries()) {
+      if (steals > maxSteals) {
+        maxSteals = steals;
+        stealLeaderIds = [pId];
+      } else if (steals === maxSteals) {
+        stealLeaderIds.push(pId);
+      }
+    }
+
+    if (stealLeaderIds.length === 1) {
+      return stealLeaderIds[0];
+    }
   }
 
   return 'tie';

@@ -66,22 +66,27 @@ Aprilo in un qualsiasi browser (Chrome, Safari, Firefox, Edge). **Buona partita!
 - Ciascun giocatore ha un proprio orologio (es. 60 secondi).
 - Il tempo scorre solo mentre è il tuo turno. Se il tuo tempo si azzera, il turno passa immediatamente al tuo avversario.
 
-### 🏆 6. Chi Vince?
-- La partita termina quando tutti i 31 esagoni sono stati assegnati o se non rimangono più mosse possibili.
-- Vince chi controlla il **maggior numero di esagoni**. In caso di parità, vince chi ha più tempo rimasto sull'orologio.
+### 🏆 6. Chi Vince e Regole di Spareggio
+- La partita termina quando tutti gli esagoni sono stati assegnati, se non rimangono più mosse possibili o se tutti i giocatori esauriscono il timer.
+- **Criterio Principale**: Vince chi controlla il **maggior numero di esagoni**.
+- **1° Criterio di Spareggio**: Tempo rimanente sul proprio cronometro (`timeRemainingMs`).
+- **2° Criterio di Spareggio**: Maggior numero di esagoni rubati agli avversari durante la partita (`stolenHexIds`).
+- Se tutti i criteri sono identici: Pareggio ufficiale (`tie`).
 
 ---
 
 ## 👥 Modalità di Gioco Incluse
 
-- **👤 Giocatore Singolo (Tu vs Bot)**: Sfida l'intelligenza artificiale impostando la difficoltà:
-  - *Facile*: Il bot conosce solo i campioni più famosi e gioca in modo rilassato.
-  - *Medio*: Il bot valuta le mosse migliori e punta a conquistare e rubare più esagoni possibili.
-  - *Difficile*: Conoscenza quasi enciclopedica e forte prioritizzazione del furto dei tuoi esagoni.
-- **👥 In 2 Giocatori (Hotseat)**: Gioca 1 contro 1 a turni sullo stesso computer, tablet o smartphone.
-- **👥 In 3 Giocatori**: Partita a tre giocatori in contemporanea sullo stesso schermo.
+- **👤 Giocatore Singolo (Tu vs Bot AI)**: Sfida l'intelligenza artificiale con 3 livelli di difficoltà (Facile, Medio, Difficile).
+- **👥 In 2 Giocatori (Hotseat)**: Sfida 1 contro 1 a turni alternati con nomi personalizzabili.
+- **👥 In 3 Giocatori (Hotseat)**: Partita a 3 giocatori tutti contro tutti sullo stesso schermo.
+- **👥 In 4 Giocatori (Hotseat)**: Sfida a 4 giocatori con rotazione turni e furto da qualsiasi avversario.
 - **🤖 Bot vs Bot**: Modalità spettatore per guardare due intelligenze artificiali sfidarsi tra loro.
-- **🏀 Multi-Sport**: Puoi scegliere tra il dataset del **Calcio** (oltre 150 calciatori e 18 grandi mister) e il dataset del **Basket NBA** (21 leggende e head coach NBA).
+- **🎨 Colori Daltonici**: Palette ad alto contrasto (Blu Cielo, Ambra, Smeraldo, Fucsia) perfettamente distinguibili per qualsiasi forma di daltonismo.
+- **📐 Griglia Configurabile**:
+  - *31 Esagoni (Classica)*: Veloce e densa, con furti continui ad ogni round.
+  - *37 Esagoni (Espansa)*: Consigliata per 3-4 giocatori, offre più territorio e respiro strategico.
+- **🏀 Multi-Sport**: Dataset Calcio (273 tra campioni e allenatori) e Basket NBA (icone e coach).
 
 ---
 

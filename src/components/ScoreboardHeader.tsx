@@ -21,6 +21,18 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
 }) => {
   const { scores, neutralCount } = getScoreSummary(state);
   const activePlayer = state.players[state.activePlayerIndex];
+  const totalHexes = state.board.length;
+
+  // Determine next player in rotation who still has time
+  const nextPlayer = (() => {
+    let nextIdx = (state.activePlayerIndex + 1) % state.players.length;
+    let checks = 0;
+    while (state.players[nextIdx].timeRemainingMs <= 0 && checks < state.players.length) {
+      nextIdx = (nextIdx + 1) % state.players.length;
+      checks++;
+    }
+    return state.players[nextIdx];
+  })();
 
   // Format milliseconds into MM:SS
   const formatTimer = (ms: number): string => {
@@ -88,6 +100,11 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
             <span style={{ fontWeight: 800, color: activePlayer.color, fontSize: '15px' }}>
               {activePlayer.name} {activePlayer.isBot ? '🤖' : ''}
             </span>
+            {state.players.length > 2 && (
+              <span style={{ fontSize: '11px', color: '#64748b' }}>
+                (poi {nextPlayer.name})
+              </span>
+            )}
           </div>
 
           <div
@@ -165,21 +182,24 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
       >
         {state.players.map((p, idx) => {
           const isActive = idx === state.activePlayerIndex;
+          const isTimedOut = p.timeRemainingMs <= 0;
+          const isNext = p.id === nextPlayer.id && !isActive && !isTimedOut;
           const score = scores[p.id] ?? 0;
-          const pct = Math.round((score / 31) * 100);
+          const pct = Math.round((score / totalHexes) * 100);
 
           return (
             <div
               key={p.id}
               style={{
                 backgroundColor: isActive ? '#1a2438' : '#0e1422',
-                border: isActive ? `2px solid ${p.color}` : '1px solid #1a2538',
+                border: isActive ? `2px solid ${p.color}` : isTimedOut ? '1px solid #7f1d1d' : '1px solid #1a2538',
                 borderRadius: '10px',
                 padding: '10px 12px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '4px',
-                transition: 'border-color 0.2s',
+                opacity: isTimedOut ? 0.6 : 1,
+                transition: 'all 0.2s ease',
               }}
             >
               <div
@@ -189,18 +209,36 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
                   color: p.color,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  justifyContent: 'space-between',
+                  gap: '4px',
                 }}
               >
-                <div
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    backgroundColor: p.color,
-                  }}
-                />
-                {p.name}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      backgroundColor: p.color,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span>{p.name}</span>
+                </div>
+
+                {isTimedOut ? (
+                  <span style={{ fontSize: '9px', color: '#f87171', fontWeight: 800, backgroundColor: '#450a0a', padding: '1px 5px', borderRadius: '4px' }}>
+                    OUT
+                  </span>
+                ) : isActive ? (
+                  <span style={{ fontSize: '9px', color: p.color, fontWeight: 800, backgroundColor: 'rgba(255,255,255,0.1)', padding: '1px 5px', borderRadius: '4px' }}>
+                    ▶ TURNO
+                  </span>
+                ) : isNext && state.players.length > 2 ? (
+                  <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 700 }}>
+                    POI
+                  </span>
+                ) : null}
               </div>
               <div
                 style={{
@@ -211,7 +249,7 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
               >
                 <span style={{ fontSize: '24px', fontWeight: 800 }}>{score}</span>
                 <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
-                  {pct}% (31)
+                  {pct}% ({totalHexes})
                 </span>
               </div>
             </div>

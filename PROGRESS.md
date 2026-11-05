@@ -73,9 +73,47 @@ Questo documento traccia l'avanzamento dei blocchi di sviluppo definiti in `FIX_
 
 ---
 
-## ⏭️ Prossimi Passi (Blocco 3)
-- **Versione a 4 Giocatori**:
-  - Supporto per 2, 3 e 4 giocatori in hotseat con colori accessibili e distinguibili (anche per daltonici) e nomi personalizzabili.
-  - Valutazione dimensione griglia per 4 giocatori (pro/contro di 31 esagoni vs griglie più ampie, es. 43 o 55 esagoni configurabili).
-  - Definizione e implementazione delle regole per 3-4 giocatori (furto da qualsiasi avversario, gestione pareggi, timeout turno).
-  - Test con partite simulate complete a 2, 3 e 4 giocatori.
+## 📌 Blocco 3 - Versione a 4 Giocatori, Griglia Configurabile e Regole (Completato)
+
+### 1. Diagnosi iniziale effettuata
+- **Problema rilevato**: `SetupScreen` supportava solo fino a 3 giocatori con nome del 3° non modificabile e nessun supporto per 4 giocatori. Inoltre, con il timer azzerato per tutti i giocatori (`timeRemainingMs <= 0`), il motore continuava a ciclare a vuoto senza mai chiudere la partita a `game_over`. Infine, con 31 esagoni e 4 giocatori, lo spazio territoriale risultava ridotto a soli ~7.7 esagoni pro-capite.
+
+### 2. Modifiche e decisioni architetturali
+- **Palette Colori Daltonici & Personalizzazione Nomi (`src/components/SetupScreen.tsx`)**:
+  - Introdotta la palette universale ad alto contrasto Okabe-Ito: Blu Cielo (`#0284c7`), Ambra (`#f59e0b`), Smeraldo (`#10b981`), Fucsia (`#ec4899`), distinguibili per qualsiasi forma di daltonismo (protanopia, deuteranopia, tritanopia).
+  - Nomi 100% personalizzabili con input dedicati e indicatori colore per tutti i giocatori da 1 a 4.
+- **Griglia Configurabile: 31 vs 37 Esagoni (`src/engine/hexGrid.ts`, `boardGenerator.ts`)**:
+  - `standard_31`: Classica (31 esagoni, 72 adiacenze) per partite rapide e serrate.
+  - `expanded_37`: Esagono regolare raggio 3 (37 esagoni, 90 adiacenze), consigliata per 3-4 giocatori per garantire maggiore profondità strategica e spazio territoriale. Generata al 100% compliant con il CSP.
+- **Regole Multi-giocatore e Criteri di Pareggio (`src/engine/gameEngine.ts`)**:
+  - *Furto*: Conquista simultanea di territori da qualsiasi avversario (2, 3 o 4 giocatori).
+  - *Gerarchia Pareggi*: 1) Maggior numero di esagoni, 2) Tempo residuo su cronometro, 3) Maggior numero di esagoni rubati agli avversari (`stolenHexIds`), 4) Pareggio ufficiale (`tie`).
+  - *Gestione Timeout*: Giocatori con tempo esaurito vengono saltati automaticamente; se tutti esauriscono il tempo, la partita termina immediatamente a `game_over`.
+- **Scoreboard & UI Multi-giocatore (`ScoreboardHeader.tsx`, `GameOverModal.tsx`)**:
+  - Evidenza dinamica del giocatore attivo, del prossimo giocatore in rotazione e badge `OUT` per tempo scaduto.
+  - Podio di fine partita con classifica ordinata (1°, 2°, 3°, 4° posto con medaglie 🥇, 🥈, 🥉, 🏅).
+
+### 3. Test Passati
+- **45 test su 45 superati** in Vitest:
+  - `tests/multiplayer.test.ts` (13 nuovi test):
+    - Generazione e validazione 100% connettività per griglia da 31 e 37 esagoni (72 e 90 adiacenze).
+    - Rotazione sequenziale turni a 3 e 4 giocatori.
+    - Furto simultaneo da avversari diversi nello stesso turno.
+    - Gestione timeout singolo e globale.
+    - Criteri di spareggio (esagoni > tempo > furti > tie).
+    - Partite simulate complete fino a `game_over` a 2, 3 e 4 giocatori senza anomalie.
+  - `tests/boardValidation.test.ts` (6 test).
+  - `tests/boardGenerator.test.ts` (3 test).
+  - `tests/search.test.ts` (6 test).
+  - `tests/gameEngine.test.ts` (9 test).
+  - `tests/matching.test.ts` (6 test).
+  - `tests/botAgent.test.ts` (2 test).
+
+---
+
+## ⏭️ Prossimi Passi (Blocco 4)
+- **Grafica e Segnapunti**:
+  - Scacchiera più grande che sfrutta tutto lo spazio disponibile (desktop e mobile).
+  - Zoom (rotella mouse, pinch to zoom, pulsanti + e -) e pan/drag con pulsante "Ripristina Vista".
+  - Etichette delle categorie adattive e leggibili a qualsiasi livello di zoom.
+  - Segnapunti più grande e sempre visibile con animazioni al cambio punteggio.

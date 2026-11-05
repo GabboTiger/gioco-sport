@@ -1,5 +1,5 @@
-import { Category, Dataset, HexCell } from './types';
-import { generate31HexCoords, getAxialNeighbors } from './hexGrid';
+import { Category, Dataset, HexCell, GridSizeType } from './types';
+import { generateBoardCoords, getAxialNeighbors } from './hexGrid';
 import { buildInvertedIndex, getCategoryIntersection, InvertedIndex } from './matching';
 import { validateBoard, BoardValidationResult } from './boardValidation';
 
@@ -31,10 +31,11 @@ export interface BoardGeneratorOptions {
   minAnswersPerHex?: number;
   maxAttempts?: number;
   validateAtRuntime?: boolean;
+  gridSize?: GridSizeType;
 }
 
 /**
- * Generates 31 hex cells assigned with balanced categories, satisfying the OBLIGATORY
+ * Generates hex cells assigned with balanced categories, satisfying the OBLIGATORY
  * constraint that EVERY adjacent pair of hexes shares at least one valid entity (non-empty intersection).
  */
 export function generateBoard(
@@ -46,13 +47,12 @@ export function generateBoard(
     minAnswersPerHex = 5,
     maxAttempts = 50,
     validateAtRuntime = true,
+    gridSize = 'standard_31',
   } = options;
 
   const index = buildInvertedIndex(dataset);
-  const coords = generate31HexCoords(); // 31 coordinates
-  if (coords.length !== 31) {
-    throw new BoardGenerationError(`Expected 31 hex coordinates, got ${coords.length}`);
-  }
+  const coords = generateBoardCoords(gridSize);
+  const requiredCount = coords.length;
 
   // 1. Filter categories with at least minAnswersPerHex
   const eligibleCategories = dataset.categories.filter((cat) => {
@@ -60,9 +60,9 @@ export function generateBoard(
     return matchingCount >= minAnswersPerHex;
   });
 
-  if (eligibleCategories.length < 31) {
+  if (eligibleCategories.length < requiredCount) {
     throw new BoardGenerationError(
-      `Non ci sono abbastanza categorie idonee (${eligibleCategories.length}) con almeno ${minAnswersPerHex} risposte valide. Ne servono almeno 31.`
+      `Non ci sono abbastanza categorie idonee (${eligibleCategories.length}) con almeno ${minAnswersPerHex} risposte valide. Ne servono almeno ${requiredCount}.`
     );
   }
 
@@ -145,14 +145,15 @@ function tryGenerateBoardCSP(
   index: InvertedIndex,
   rng: () => number
 ): HexCell[] | null {
-  const assigned: (Category | null)[] = new Array(31).fill(null);
+  const targetCount = coords.length;
+  const assigned: (Category | null)[] = new Array(targetCount).fill(null);
   const usedCatIds = new Set<string>();
 
   let steps = 0;
-  const maxSteps = 3000;
+  const maxSteps = targetCount > 31 ? 4500 : 3000;
 
   function backtrack(pos: number): boolean {
-    if (pos === 31) return true;
+    if (pos === targetCount) return true;
     if (++steps > maxSteps) return false;
 
     const prevNeighbors = prevNeighborIndices[pos];
