@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { HexCell, Player, Entity } from '../engine/types';
-import { axialToPixel, getHexagonPolygonPoints } from '../engine/hexGrid';
+import { axialToPixel, getHexagonPolygonPoints, getAdjacentCells } from '../engine/hexGrid';
 import { calculateConquestImpact } from '../engine/gameEngine';
 
 interface HexGridSVGProps {
@@ -13,6 +13,8 @@ interface HexGridSVGProps {
   chainConquestMode?: 'direct' | 'flood_fill';
   hoveredLegendCatId?: string | null;
   isBotThinking?: boolean;
+  showDebugConnections?: boolean;
+  connectionCounts?: Record<string, number>;
 }
 
 export const HexGridSVG: React.FC<HexGridSVGProps> = ({
@@ -25,6 +27,8 @@ export const HexGridSVG: React.FC<HexGridSVGProps> = ({
   chainConquestMode = 'flood_fill',
   hoveredLegendCatId,
   isBotThinking,
+  showDebugConnections = false,
+  connectionCounts = {},
 }) => {
   const hexRadius = 56;
   const viewBoxWidth = 860;
@@ -79,6 +83,53 @@ export const HexGridSVG: React.FC<HexGridSVGProps> = ({
 
     return [`${words[0]} ${words[1]}`, words.slice(2).join(' ')];
   };
+
+  // Precompute unique adjacent edges for debug mode
+  const adjacentEdges = useMemo(() => {
+    if (!showDebugConnections) return [];
+
+    const edges: Array<{
+      key: string;
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      midX: number;
+      midY: number;
+      count: number;
+      cellAId: string;
+      cellBId: string;
+    }> = [];
+    const seen = new Set<string>();
+
+    for (const cellA of board) {
+      const posA = axialToPixel(cellA, hexRadius, originX, originY);
+      const neighbors = getAdjacentCells(cellA.id, board);
+
+      for (const cellB of neighbors) {
+        const pairKey = [cellA.id, cellB.id].sort().join(' <-> ');
+        if (seen.has(pairKey)) continue;
+        seen.add(pairKey);
+
+        const posB = axialToPixel(cellB, hexRadius, originX, originY);
+        const count = connectionCounts[pairKey] ?? 0;
+
+        edges.push({
+          key: pairKey,
+          x1: posA.x,
+          y1: posA.y,
+          x2: posB.x,
+          y2: posB.y,
+          midX: (posA.x + posB.x) / 2,
+          midY: (posA.y + posB.y) / 2,
+          count,
+          cellAId: cellA.id,
+          cellBId: cellB.id,
+        });
+      }
+    }
+    return edges;
+  }, [board, showDebugConnections, connectionCounts, hexRadius, originX, originY]);
 
   return (
     <div
@@ -261,6 +312,48 @@ export const HexGridSVG: React.FC<HexGridSVGProps> = ({
             </g>
           );
         })}
+
+        {/* Debug Mode: Show Connection Counts and Links between All Adjacent Hexes */}
+        {showDebugConnections &&
+          adjacentEdges.map((edge) => {
+            const isHighlighted =
+              selectedHexId === edge.cellAId || selectedHexId === edge.cellBId;
+            const isZero = edge.count === 0;
+
+            return (
+              <g key={edge.key} style={{ pointerEvents: 'none' }}>
+                <line
+                  x1={edge.x1}
+                  y1={edge.y1}
+                  x2={edge.x2}
+                  y2={edge.y2}
+                  stroke={isZero ? '#ef4444' : isHighlighted ? '#38bdf8' : '#334155'}
+                  strokeWidth={isZero ? 2.5 : isHighlighted ? 2.5 : 1}
+                  strokeDasharray={isZero ? 'none' : isHighlighted ? 'none' : '3 3'}
+                  opacity={isHighlighted ? 0.95 : isZero ? 0.9 : 0.45}
+                />
+                <circle
+                  cx={edge.midX}
+                  cy={edge.midY}
+                  r={isHighlighted ? 12 : 9.5}
+                  fill="#0b0f19"
+                  stroke={isZero ? '#ef4444' : isHighlighted ? '#38bdf8' : '#10b981'}
+                  strokeWidth={isHighlighted ? 2 : 1.2}
+                />
+                <text
+                  x={edge.midX}
+                  y={edge.midY}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fill={isZero ? '#f87171' : isHighlighted ? '#ffffff' : '#34d399'}
+                  fontSize={isHighlighted ? '10.5' : '8.5'}
+                  fontWeight="800"
+                >
+                  {edge.count}
+                </text>
+              </g>
+            );
+          })}
       </svg>
     </div>
   );

@@ -1,6 +1,17 @@
 import { Category, Dataset, HexCell } from './types';
 import { generate31HexCoords, getAxialNeighbors } from './hexGrid';
 import { buildInvertedIndex, getCategoryIntersection, InvertedIndex } from './matching';
+import { validateBoard, BoardValidationResult } from './boardValidation';
+
+export class BoardGenerationError extends Error {
+  constructor(
+    message: string,
+    public readonly validationResult?: BoardValidationResult
+  ) {
+    super(message);
+    this.name = 'BoardGenerationError';
+  }
+}
 
 /**
  * Fast seedable PRNG (Mulberry32).
@@ -18,12 +29,13 @@ export function createPRNG(seed: number) {
 
 export interface BoardGeneratorOptions {
   minAnswersPerHex?: number;
-  minAdjacentIntersectionRatio?: number; // e.g. 0.60 (60% of adjacent pairs share at least 1 entity)
   maxAttempts?: number;
+  validateAtRuntime?: boolean;
 }
 
 /**
- * Generates 31 hex cells assigned with balanced, playable categories.
+ * Generates 31 hex cells assigned with balanced categories, satisfying the OBLIGATORY
+ * constraint that EVERY adjacent pair of hexes shares at least one valid entity (non-empty intersection).
  */
 export function generateBoard(
   dataset: Dataset,
@@ -32,166 +44,170 @@ export function generateBoard(
 ): HexCell[] {
   const {
     minAnswersPerHex = 5,
-    minAdjacentIntersectionRatio = 0.55,
     maxAttempts = 50,
+    validateAtRuntime = true,
   } = options;
 
   const index = buildInvertedIndex(dataset);
   const coords = generate31HexCoords(); // 31 coordinates
   if (coords.length !== 31) {
-    throw new Error(`Expected 31 hex coordinates, got ${coords.length}`);
+    throw new BoardGenerationError(`Expected 31 hex coordinates, got ${coords.length}`);
   }
 
-  // Filter categories with at least minAnswersPerHex
+  // 1. Filter categories with at least minAnswersPerHex
   const eligibleCategories = dataset.categories.filter((cat) => {
     const matchingCount = index.categoryToEntities.get(cat.id)?.size ?? 0;
     return matchingCount >= minAnswersPerHex;
   });
 
   if (eligibleCategories.length < 31) {
-    throw new Error(
-      `Not enough eligible categories (${eligibleCategories.length}) with at least ${minAnswersPerHex} answers. Need at least 31.`
+    throw new BoardGenerationError(
+      `Non ci sono abbastanza categorie idonee (${eligibleCategories.length}) con almeno ${minAnswersPerHex} risposte valide. Ne servono almeno 31.`
     );
   }
 
-  let attemptSeed = seed;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const rng = createPRNG(attemptSeed);
-    const board = tryGenerateBoard(coords, eligibleCategories, index, rng, minAdjacentIntersectionRatio);
-    if (board) {
-      return board;
-    }
-    attemptSeed = Math.floor(attemptSeed + 7919) >>> 0;
-  }
-
-  // Fallback: generate best-effort without strict intersection threshold if tight
-  const fallbackRng = createPRNG(seed);
-  return tryGenerateBoard(coords, eligibleCategories, index, fallbackRng, 0)!;
-}
-
-function tryGenerateBoard(
-  coords: Array<{ q: number; r: number }>,
-  eligibleCategories: Category[],
-  index: InvertedIndex,
-  rng: () => number,
-  minAdjacentIntersectionRatio: number
-): HexCell[] | null {
-  // Shuffle categories deterministically
-  const pool = [...eligibleCategories];
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
-
-  // Ensure balance across category types
-  const byType = new Map<string, Category[]>();
-  for (const cat of pool) {
-    if (!byType.has(cat.type)) byType.set(cat.type, []);
-    byType.get(cat.type)!.push(cat);
-  }
-
-  const selectedCategories: Category[] = [];
-  const usedCatIds = new Set<string>();
-
-  // Round robin over types to pick a balanced 31 categories
-  const types = Array.from(byType.keys());
-  let typeIdx = 0;
-  while (selectedCategories.length < 31 && usedCatIds.size < pool.length) {
-    const curType = types[typeIdx % types.length];
-    const candidates = byType.get(curType) ?? [];
-    const cat = candidates.find((c) => !usedCatIds.has(c.id));
-    if (cat) {
-      usedCatIds.add(cat.id);
-      selectedCategories.push(cat);
-    }
-    typeIdx++;
-  }
-
-  // If still need more, fill from remaining
-  for (const cat of pool) {
-    if (selectedCategories.length >= 31) break;
-    if (!usedCatIds.has(cat.id)) {
-      usedCatIds.add(cat.id);
-      selectedCategories.push(cat);
-    }
-  }
-
-  if (selectedCategories.length < 31) {
-    return null;
-  }
-
-  // Place categories onto hexes, prioritizing common entities with neighbors
-  const placedCells: HexCell[] = [];
-  const remainingCats = [...selectedCategories];
-
-  for (let i = 0; i < coords.length; i++) {
-    const coord = coords[i];
-    const neighbors = getAxialNeighbors(coord);
-    const placedNeighbors = placedCells.filter((c) =>
-      neighbors.some((n) => n.q === c.q && n.r === c.r)
-    );
-
-    let bestCatIdx = 0;
-    let bestScore = -1;
-
-    for (let c = 0; c < remainingCats.length; c++) {
-      const candidate = remainingCats[c];
-      let score = 0;
-
-      for (const neighbor of placedNeighbors) {
-        const common = getCategoryIntersection(candidate.id, neighbor.category.id, index);
-        if (common.length > 0) {
-          score += common.length;
+  // 2. Precompute compatibility matrix: Map<catId, Set<compatibleCatId>>
+  const compat = new Map<string, Set<string>>();
+  for (const catA of eligibleCategories) {
+    const set = new Set<string>();
+    for (const catB of eligibleCategories) {
+      if (catA.id !== catB.id) {
+        const common = getCategoryIntersection(catA.id, catB.id, index);
+        if (common.length >= 1) {
+          set.add(catB.id);
         }
       }
+    }
+    compat.set(catA.id, set);
+  }
 
-      // Add a tiny random jitter for variety
-      score += rng() * 0.5;
+  // 3. Order coordinates by distance from origin (center outward BFS)
+  const orderedCoords = [...coords].sort((a, b) => {
+    const distA = (Math.abs(a.q) + Math.abs(a.q + a.r) + Math.abs(a.r)) / 2;
+    const distB = (Math.abs(b.q) + Math.abs(b.q + b.r) + Math.abs(b.r)) / 2;
+    if (distA !== distB) return distA - distB;
+    if (a.r !== b.r) return a.r - b.r;
+    return a.q - b.q;
+  });
 
-      if (score > bestScore) {
-        bestScore = score;
-        bestCatIdx = c;
+  // Precompute previous neighbor indices for each position
+  const prevNeighborIndices: number[][] = [];
+  for (let i = 0; i < orderedCoords.length; i++) {
+    const neighbors = getAxialNeighbors(orderedCoords[i]);
+    const prevIndices: number[] = [];
+    for (let j = 0; j < i; j++) {
+      if (neighbors.some((n) => n.q === orderedCoords[j].q && n.r === orderedCoords[j].r)) {
+        prevIndices.push(j);
       }
     }
+    prevNeighborIndices.push(prevIndices);
+  }
 
-    const [chosen] = remainingCats.splice(bestCatIdx, 1);
-    placedCells.push({
+  // 4. Attempt CSP generation with randomized restarts
+  let lastValidation: BoardValidationResult | undefined;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const rng = createPRNG(seed + attempt * 7919);
+    const board = tryGenerateBoardCSP(
+      orderedCoords,
+      prevNeighborIndices,
+      eligibleCategories,
+      compat,
+      index,
+      rng
+    );
+
+    if (board) {
+      if (validateAtRuntime) {
+        const validation = validateBoard(board, dataset, minAnswersPerHex, index);
+        if (validation.isValid) {
+          return board;
+        }
+        lastValidation = validation;
+      } else {
+        return board;
+      }
+    }
+  }
+
+  throw new BoardGenerationError(
+    `Impossibile generare una tabella valida al 100% dopo ${maxAttempts} tentativi con seed ${seed}. ` +
+      (lastValidation ? `${lastValidation.disjointPairs.length} coppie senza collegamento.` : ''),
+    lastValidation
+  );
+}
+
+function tryGenerateBoardCSP(
+  coords: Array<{ q: number; r: number }>,
+  prevNeighborIndices: number[][],
+  eligibleCategories: Category[],
+  compat: Map<string, Set<string>>,
+  index: InvertedIndex,
+  rng: () => number
+): HexCell[] | null {
+  const assigned: (Category | null)[] = new Array(31).fill(null);
+  const usedCatIds = new Set<string>();
+
+  let steps = 0;
+  const maxSteps = 3000;
+
+  function backtrack(pos: number): boolean {
+    if (pos === 31) return true;
+    if (++steps > maxSteps) return false;
+
+    const prevNeighbors = prevNeighborIndices[pos];
+
+    // Must be compatible with ALL placed neighbors (MANDATORY non-empty intersection)
+    let candidates = eligibleCategories.filter((cat) => {
+      if (usedCatIds.has(cat.id)) return false;
+      for (const pIdx of prevNeighbors) {
+        const placedCat = assigned[pIdx]!;
+        if (!compat.get(cat.id)!.has(placedCat.id)) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    if (candidates.length === 0) return false;
+
+    // Score candidates by intersection richness and slight random jitter
+    const scoredCandidates = candidates.map((cat) => {
+      let intersectionScore = 0;
+      for (const pIdx of prevNeighbors) {
+        const placedCat = assigned[pIdx]!;
+        intersectionScore += getCategoryIntersection(cat.id, placedCat.id, index).length;
+      }
+      return { cat, score: intersectionScore + rng() * 3 };
+    });
+
+    scoredCandidates.sort((a, b) => b.score - a.score);
+
+    for (const item of scoredCandidates) {
+      const cat = item.cat;
+      assigned[pos] = cat;
+      usedCatIds.add(cat.id);
+
+      if (backtrack(pos + 1)) {
+        return true;
+      }
+
+      assigned[pos] = null;
+      usedCatIds.delete(cat.id);
+    }
+
+    return false;
+  }
+
+  if (backtrack(0)) {
+    return coords.map((coord, idx) => ({
       id: `hex_${coord.q}_${coord.r}`,
       q: coord.q,
       r: coord.r,
-      category: chosen,
+      category: assigned[idx]!,
       ownerId: null,
-    });
+    }));
   }
 
-  // Check adjacent intersection ratio
-  let totalAdjPairs = 0;
-  let intersectingPairs = 0;
-
-  for (let i = 0; i < placedCells.length; i++) {
-    const cellA = placedCells[i];
-    for (let j = i + 1; j < placedCells.length; j++) {
-      const cellB = placedCells[j];
-      const dist =
-        (Math.abs(cellA.q - cellB.q) +
-          Math.abs(cellA.q + cellA.r - cellB.q - cellB.r) +
-          Math.abs(cellA.r - cellB.r)) /
-        2;
-      if (dist === 1) {
-        totalAdjPairs++;
-        const common = getCategoryIntersection(cellA.category.id, cellB.category.id, index);
-        if (common.length > 0) {
-          intersectingPairs++;
-        }
-      }
-    }
-  }
-
-  const ratio = totalAdjPairs > 0 ? intersectingPairs / totalAdjPairs : 0;
-  if (ratio < minAdjacentIntersectionRatio) {
-    return null;
-  }
-
-  return placedCells;
+  return null;
 }

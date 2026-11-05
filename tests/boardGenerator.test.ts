@@ -37,7 +37,6 @@ describe('generateBoard', () => {
     for (let seed = 1; seed <= 50; seed++) {
       const board = generateBoard(FOOTBALL_DATASET, seed * 101, {
         minAnswersPerHex: 5,
-        minAdjacentIntersectionRatio: 0.50,
       });
 
       expect(board.length).toBe(31);

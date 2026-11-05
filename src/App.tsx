@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { GameConfig, GameState, MoveResult, Entity, Dataset } from './engine/types';
 import { initGameState, applyMove, tick } from './engine/gameEngine';
+import { validateBoard, BoardValidationResult } from './engine/boardValidation';
 import { chooseBotMove } from './bot/botAgent';
 import { FOOTBALL_DATASET } from './data/footballDataset';
 import { BASKETBALL_DATASET } from './data/basketballDataset';
@@ -19,6 +20,7 @@ export const App: React.FC = () => {
   const [lastMoveResult, setLastMoveResult] = useState<MoveResult | null>(null);
   const [isBotThinking, setIsBotThinking] = useState(false);
   const [hoveredLegendCatId, setHoveredLegendCatId] = useState<string | null>(null);
+  const [showDebugConnections, setShowDebugConnections] = useState<boolean>(false);
 
   // Timer reference
   const lastTickTimeRef = useRef<number>(Date.now());
@@ -26,6 +28,12 @@ export const App: React.FC = () => {
   // Determine current dataset based on config
   const currentDataset: Dataset =
     gameState?.config.sport === 'basketball' ? BASKETBALL_DATASET : FOOTBALL_DATASET;
+
+  // Memoized Board Validation for runtime verification and debug inspection
+  const boardValidation: BoardValidationResult | null = useMemo(() => {
+    if (!gameState) return null;
+    return validateBoard(gameState.board, currentDataset);
+  }, [gameState?.board, currentDataset]);
 
   // Start a new game with configuration
   const handleStartGame = (config: GameConfig) => {
@@ -155,7 +163,96 @@ export const App: React.FC = () => {
         lastMoveResult={lastMoveResult}
         onNewGameClick={() => setGameState(null)}
         isBotThinking={isBotThinking}
+        isDebugActive={showDebugConnections}
+        onToggleDebug={() => setShowDebugConnections((prev) => !prev)}
       />
+
+      {/* Debug Panel: Summary of Adjacency Connectivity */}
+      {showDebugConnections && boardValidation && (
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '920px',
+            margin: '0 auto 12px auto',
+            padding: '12px 18px',
+            backgroundColor: '#0f172a',
+            border: '1px solid #1e3a8a',
+            borderRadius: '12px',
+            color: '#e2e8f0',
+            fontSize: '13px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '15px' }}>{boardValidation.isValid ? '✅' : '❌'}</span>
+              <strong style={{ color: '#f1f5f9' }}>Validazione Tabella:</strong>
+              <span
+                style={{
+                  color: boardValidation.isValid ? '#34d399' : '#f87171',
+                  fontWeight: 700,
+                }}
+              >
+                {boardValidation.isValid
+                  ? `100% VALIDA (${boardValidation.connectedPairs}/${boardValidation.totalAdjacentPairs} coppie adiacenti connesse)`
+                  : `${boardValidation.disjointPairs.length} coppie senza collegamenti!`}
+              </span>
+            </div>
+            <div style={{ color: '#94a3b8', fontSize: '12px' }}>
+              Seed: <code>{gameState.config.seed}</code> | Min risposte per cella:{' '}
+              <code>{gameState.config.minAnswersPerHex ?? 5}</code>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              gap: '16px',
+              flexWrap: 'wrap',
+              fontSize: '12px',
+              color: '#cbd5e1',
+            }}
+          >
+            {(() => {
+              const counts = Object.values(boardValidation.connectionCounts);
+              const min = counts.length > 0 ? Math.min(...counts) : 0;
+              const max = counts.length > 0 ? Math.max(...counts) : 0;
+              const avg =
+                counts.length > 0
+                  ? (counts.reduce((a, b) => a + b, 0) / counts.length).toFixed(1)
+                  : '0';
+              return (
+                <>
+                  <span>
+                    Minimo per coppia:{' '}
+                    <strong style={{ color: min >= 1 ? '#34d399' : '#f87171' }}>{min}</strong>
+                  </span>
+                  <span>
+                    Massimo per coppia: <strong style={{ color: '#38bdf8' }}>{max}</strong>
+                  </span>
+                  <span>
+                    Media collegamenti: <strong style={{ color: '#fbbf24' }}>{avg}</strong>
+                  </span>
+                  <span style={{ color: '#94a3b8' }}>
+                    💡 I cerchietti con i numeri indicano quante entità collegano le due caselle
+                  </span>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Main Board Viewport */}
       <div
@@ -182,6 +279,8 @@ export const App: React.FC = () => {
           chainConquestMode={gameState.config.chainConquestMode}
           hoveredLegendCatId={hoveredLegendCatId}
           isBotThinking={isBotThinking}
+          showDebugConnections={showDebugConnections}
+          connectionCounts={boardValidation?.connectionCounts}
         />
 
         {/* Legend of abbreviations at the bottom of the board */}

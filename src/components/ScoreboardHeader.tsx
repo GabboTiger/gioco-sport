@@ -7,6 +7,8 @@ interface ScoreboardHeaderProps {
   lastMoveResult: MoveResult | null;
   onNewGameClick: () => void;
   isBotThinking?: boolean;
+  isDebugActive?: boolean;
+  onToggleDebug?: () => void;
 }
 
 export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
@@ -14,6 +16,8 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
   lastMoveResult,
   onNewGameClick,
   isBotThinking,
+  isDebugActive = false,
+  onToggleDebug,
 }) => {
   const { scores, neutralCount } = getScoreSummary(state);
   const activePlayer = state.players[state.activePlayerIndex];
@@ -111,22 +115,44 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
           )}
         </div>
 
-        <button
-          onClick={onNewGameClick}
-          style={{
-            padding: '8px 14px',
-            backgroundColor: '#1e293b',
-            border: '1px solid #334155',
-            color: '#cbd5e1',
-            borderRadius: '8px',
-            fontWeight: 700,
-            fontSize: '13px',
-            cursor: 'pointer',
-            transition: 'background-color 0.15s',
-          }}
-        >
-          ⚙️ Nuova Partita
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {onToggleDebug && (
+            <button
+              onClick={onToggleDebug}
+              title="Mostra numero di entità condivise tra caselle adiacenti"
+              style={{
+                padding: '8px 12px',
+                backgroundColor: isDebugActive ? '#1e3a8a' : '#1e293b',
+                border: isDebugActive ? '1px solid #38bdf8' : '1px solid #334155',
+                color: isDebugActive ? '#38bdf8' : '#94a3b8',
+                borderRadius: '8px',
+                fontWeight: 700,
+                fontSize: '13px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              🛠️ Debug {isDebugActive ? 'ON' : 'OFF'}
+            </button>
+          )}
+
+          <button
+            onClick={onNewGameClick}
+            style={{
+              padding: '8px 14px',
+              backgroundColor: '#1e293b',
+              border: '1px solid #334155',
+              color: '#cbd5e1',
+              borderRadius: '8px',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer',
+              transition: 'background-color 0.15s',
+            }}
+          >
+            ⚙️ Nuova Partita
+          </button>
+        </div>
       </div>
 
       {/* Middle row: Live Scoreboard Cards */}

@@ -100,13 +100,17 @@ npm run build
 ```
 
 ### Script di Diagnosi e Report Qualità Dataset
-Per verificare l'accuratezza della ricerca (alias, fuzzy match) e la completezza delle categorie:
+Per verificare l'accuratezza della ricerca (alias, fuzzy match), la completezza delle categorie e la validità delle tabelle:
 ```bash
-# Esegue il benchmark sui nomi campione e refusi
+# Esegue il benchmark sui nomi campione e refusi (Blocco 1)
 npx tsx scripts/diagnose-search.ts
 
 # Genera il report di qualità e copertura delle categorie
 npx tsx scripts/dataset-report.ts
+
+# Diagnosi e verifica del vincolo di adiacenza 100% connessa (Blocco 2)
+npx tsx scripts/diagnose-board-validation.ts
+npx tsx scripts/test-csp-generator.ts
 ```
 
 ---
@@ -115,5 +119,6 @@ npx tsx scripts/dataset-report.ts
 
 - **Motore Logico Puro (`src/engine/`)**: Indipendente dal DOM, 100% deterministico e serializzabile in JSON. Può essere eseguito identicamente sia nel browser che su un server Node.js per future partite online.
 - **Coordinate Esagonali Assiali (`src/engine/hexGrid.ts`)**: Geometria esagonale rigorosa con formule matematiche assiali `(q, r)` e coordinate cubiche `s = -q - r`.
-- **Generatore di Griglie Bilanciate (`src/engine/boardGenerator.ts`)**: PRNG Mulberry32 con seed iniettabile; assicura che ogni esagono abbia sempre almeno 5 risposte valide e che le coppie confinanti condividano risposte per favorire combo e furti.
+- **Generatore di Griglie CSP con Garanzia 100% (`src/engine/boardGenerator.ts` e `boardValidation.ts`)**: Generatore basato su Constraint Satisfaction Problem (CSP con backtracking e ordinamento BFS dal centro). Garantisce al **100%** che **tutte le 72 coppie di esagoni adiacenti condividano almeno un'entità valida**, eliminando qualsiasi coppia disgiunta o "muro cieco".
+- **Pannello Debug Adiacenze a Runtime**: Toggle integrato nella testata (`🛠️ Debug ON/OFF`) per visualizzare in tempo reale sulla mappa i collegamenti tra esagoni e il numero di entità condivise per ciascuna coppia adiacente.
 - **Template Wikidata SPARQL (`scripts/wikidata-importer.ts`)**: Script e documentazione con query SPARQL pronte per espandere il dataset via Wikidata Query Service.
